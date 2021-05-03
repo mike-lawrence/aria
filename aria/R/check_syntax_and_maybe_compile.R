@@ -14,6 +14,16 @@
 #' check_and_maybe_compile('my_model.stan')
 #' }
 check_syntax_and_maybe_compile = function(code_path){
+	#check if this is the first compile this session:
+	if(aria:::rstan_message_necessary){
+		cat(crayon::cyan('Note to rstan users: To enhance Rstudio\'s "Check on save" feature for Stan files, aria has overriden the `rstan:::rstudio_stanc()` function. To undo this override, use `aria::disable_rstudio_syntax_compile()`. This message is shown the first time you use the "Check on save" within a session.\n\n'))
+		utils::assignInNamespace(
+			"rstan_message_necessary"
+			, {FALSE}
+			, ns = "aria"
+			, envir = as.environment("package:aria")
+		)
+	}
 
 	#first a syntax check
 	if(!check_syntax(code_path)){ #check_syntax returns TRUE if passed
