@@ -11,7 +11,7 @@ That said, if you're a more advanced Stan user that's familiar with [cmdstanr](h
 
 ### Implemented features
 * Use of `stanc3` for syntax checking in RStudio
-* Option to trigger model compilation on save with a `\\compile=1` string at the top of your Stan file
+* Option to trigger model compilation on save with a `\\compile:1` string at the top of your Stan file
 * Smart compilation whereby the saved model is compared to a stored (in `stan_tmp`) representation and compilation only proceeds if *functional* changes to the code have been made. So go ahead and add comments and modify whitespace without fear that they will cause unnecessary model recompilation.
 
 ### Features under development
