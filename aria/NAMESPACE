@@ -2,6 +2,8 @@
 
 export(check_syntax)
 export(check_syntax_and_maybe_compile)
+export(clean)
+export(clean_all)
 export(compile)
 export(disable_rstudio_syntax_compile)
 export(enable_rstudio_syntax_compile)
