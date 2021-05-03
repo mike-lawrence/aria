@@ -4,3 +4,6 @@ dev/
 #all renv folders
 renv/
 aria/renv/
+.Rproj.user
+aria_*.tar.gz
+aria.Rcheck
