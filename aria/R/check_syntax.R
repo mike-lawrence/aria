@@ -9,14 +9,14 @@
 #'
 #' @examples
 #' \dontrun{
-#' check_syntax('stan_temp/my_model.stan')
+#' check_syntax('stan_tmp/my_model.stan')
 #' }
 check_syntax = function(code_path){
 
-	#get some paths, create stan_temp
+	#get some paths, create stan_tmp
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	fs::dir_create('stan_temp')
+	fs::dir_create('stan_tmp')
 
 	stanc_syntax_check_run = processx::run(
 		command = fs::path(cmdstanr::cmdstan_path(),cmdstanr:::stanc_cmd())

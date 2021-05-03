@@ -11,7 +11,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' check_and_maybe_compile('stan_temp/my_model.stan')
+#' check_and_maybe_compile('stan_tmp/my_model.stan')
 #' }
 check_syntax_and_maybe_compile = function(code_path){
 

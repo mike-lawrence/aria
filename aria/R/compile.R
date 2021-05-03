@@ -11,16 +11,16 @@
 #'
 #' @examples
 #' \dontrun{
-#' compile('stan_temp/my_model.stan')
+#' compile('stan_tmp/my_model.stan')
 #' }
 compile = function(code_path){
 
-	#get some paths, create stan_temp
+	#get some paths, create stan_tmp
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	exe_path = fs::path('stan_temp',fs::path_ext_remove(code_file))
+	exe_path = fs::path('stan_tmp',fs::path_ext_remove(code_file))
 	txt_path = fs::path_ext_set(exe_path,ext='txt')
-	fs::dir_create('stan_temp')
+	fs::dir_create('stan_tmp')
 
 	#If not being called by another function, do syntax check first
 	if(sys.parent()==0){ #function is being called from the global env
@@ -120,7 +120,7 @@ compile = function(code_path){
 			, 'output'
 			, paste0('file=',fs::path_ext_set(mod_name,ext='.log'))
 		)
-		, wd = 'stan_temp'
+		, wd = 'stan_tmp'
 		, error_on_status = F
 		, spinner = T
 	)
