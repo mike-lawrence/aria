@@ -12,11 +12,14 @@
 #' enable_rstudio_syntax_compile()
 #' }
 enable_rstudio_syntax_compile = function(){
-	utils::assignInNamespace(
-		"rstudio_stanc"
-		, check_syntax_and_maybe_compile
-		, ns = "rstan"
-		, envir = as.environment("package:rstan")
-	)
+	#only run if rstan is present
+	if(nzchar(system.file(package='rstan'))){
+		utils::assignInNamespace(
+			"rstudio_stanc"
+			, check_syntax_and_maybe_compile
+			, ns = "rstan"
+			, envir = as.environment("package:rstan")
+		)
+	}
 	return(invisible(NULL))
 }
