@@ -2,7 +2,7 @@
 % Please edit documentation in R/compile.R
 \name{compile}
 \alias{compile}
-\title{Compile Stan code}
+\title{Compile Stan code and check for runtime errors}
 \usage{
 compile(code_path)
 }
@@ -13,7 +13,7 @@ compile(code_path)
 NULL (invisibly)
 }
 \description{
-Compile Stan code
+This function first checks if th Stan code has changed in functional ways (i.e. not comments nor whitespace), compiles when such changes exist then runs a simple test for runtime errors.
 }
 \examples{
 \dontrun{

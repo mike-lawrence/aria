@@ -1,4 +1,6 @@
-#' Compile Stan code
+#' Compile Stan code and check for runtime errors
+#'
+#' This function first checks if th Stan code has changed in functional ways (i.e. not comments nor whitespace), compiles when such changes exist then runs a simple test for runtime errors.
 #'
 #' @param code_path Character string describing the path to the Stan code.
 #'
