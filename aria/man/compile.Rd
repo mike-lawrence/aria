@@ -10,14 +10,14 @@ compile(code_path)
 \item{code_path}{Character string describing the path to the Stan code.}
 }
 \value{
-NULL (invisibly)
+NULL (invisibly); Side effects: an eponymous executable binary is placed in a folder called `stan_tmp` (along with some other helper files).
 }
 \description{
 This function first checks if th Stan code has changed in functional ways (i.e. not comments nor whitespace), compiles when such changes exist then runs a simple test for runtime errors.
 }
 \examples{
 \dontrun{
-compile('stan_temp/my_model.stan')
+compile('my_model.stan')
 }
 }
 \seealso{

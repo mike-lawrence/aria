@@ -4,14 +4,14 @@
 #'
 #' @param code_path Character string describing the path to the Stan code.
 #'
-#' @return NULL (invisibly)
+#' @return NULL (invisibly); Side effects: if the model was compiled, an eponymous executable binary is placed in a folder called `stan_tmp` (along with some other helper files).
 #' @export
 #'
 #' @family Model checking & compilation functions
 #'
 #' @examples
 #' \dontrun{
-#' check_and_maybe_compile('stan_tmp/my_model.stan')
+#' check_and_maybe_compile('my_model.stan')
 #' }
 check_syntax_and_maybe_compile = function(code_path){
 

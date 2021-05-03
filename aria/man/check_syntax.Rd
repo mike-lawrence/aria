@@ -17,7 +17,7 @@ Check Stan code for syntax errors
 }
 \examples{
 \dontrun{
-check_syntax('stan_temp/my_model.stan')
+check_syntax('my_model.stan')
 }
 }
 \seealso{

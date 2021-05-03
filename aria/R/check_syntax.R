@@ -9,7 +9,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' check_syntax('stan_tmp/my_model.stan')
+#' check_syntax('my_model.stan')
 #' }
 check_syntax = function(code_path){
 
