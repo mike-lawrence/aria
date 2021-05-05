@@ -20,6 +20,7 @@ compile = function(code_path){
 	mod_name = fs::path_ext_remove(code_file)
 	exe_path = fs::path('stan_tmp',fs::path_ext_remove(code_file))
 	txt_path = fs::path_ext_set(exe_path,ext='txt')
+	dbg_path = fs::path_ext_set(paste0(exe_path,'_debug'),ext='json')
 	fs::dir_create('stan_tmp')
 
 	#If not being called by another function, do syntax check first
@@ -102,8 +103,7 @@ compile = function(code_path){
 		)
 		, wd = fs::path_dir(code_path)
 	)$stdout
-	debug_data_file = fs::file_temp(pattern=mod_name,ext='json')
-	write(debug_data,debug_data_file)
+	write(debug_data,dbg_path)
 
 	#Perform runtime check
 	debug_run = processx::run(
@@ -116,7 +116,7 @@ compile = function(code_path){
 			, 'engaged=0'
 			, 'algorithm=fixed_param'
 			, 'data'
-			, paste0('file=',debug_data_file)
+			, paste0('file=',dbg_path)
 			, 'output'
 			, paste0('file=',fs::path_ext_set(mod_name,ext='.log'))
 		)
