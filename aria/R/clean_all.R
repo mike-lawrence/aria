@@ -10,8 +10,8 @@
 #' clean_all()
 #' }
 clean_all = function(){
-	if(fs::dir_exists('stan_tmp')){
-		fs::dir_delete('stan_tmp')
+	if(fs::dir_exists('aria')){
+		fs::dir_delete('aria')
 	}
 	return(invisible(NULL))
 }

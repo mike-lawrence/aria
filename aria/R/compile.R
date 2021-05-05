@@ -4,7 +4,7 @@
 #'
 #' @param code_path Character string describing the path to the Stan code.
 #'
-#' @return NULL (invisibly); Side effects: an eponymous executable binary is placed in a folder called `stan_tmp` (along with some other helper files).
+#' @return NULL (invisibly); Side effects: an eponymous executable binary is placed in a folder called `aria` (along with some other helper files).
 #' @export
 #'
 #' @family Model checking & compilation functions
@@ -15,13 +15,13 @@
 #' }
 compile = function(code_path){
 
-	#get some paths, create stan_tmp
+	#get some paths, create aria
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	exe_path = fs::path('stan_tmp',fs::path_ext_remove(code_file))
+	exe_path = fs::path('aria',mod_name,'exe',fs::path_ext_remove(code_file))
 	txt_path = fs::path_ext_set(exe_path,ext='txt')
 	dbg_path = fs::path_ext_set(paste0(exe_path,'_debug'),ext='json')
-	fs::dir_create('stan_tmp')
+	fs::dir_create('aria',mod_name,'exe')
 
 	#If not being called by another function, do syntax check first
 	if(sys.parent()==0){ #function is being called from the global env
@@ -51,7 +51,11 @@ compile = function(code_path){
 			new_digest = digest::digest(file=new_txt_path,algo='xxhash64')
 			if((old_digest==new_digest)){
 				cat(crayon::blue('  ✓ Compiled exe is up to date.'))
-				return(invisible(NULL))
+				if(sys.parent()==0){ #function is being called from the global env
+					return(invisible(NULL))
+				}else{
+					return(TRUE)
+				}
 			}
 		}
 	}
@@ -69,22 +73,25 @@ compile = function(code_path){
 				'STANCFLAGS +='
 				, '--include-paths', fs::path_dir(exe_path_for_compile)
 				, '--name', mod_name
-				, '--o', tempfile()
 			)
 		)
 		, wd = cmdstanr::cmdstan_path()
 		, error_on_status = F
 		, spinner = T
 	)
-	cat(crayon::blue('  ✓ Compile complete\n'))
 
 	if(make_run$stderr!=''){
 		cat(crayon::blue(make_run$stdout))
 		cat('\n\n')
 		cat(crayon::red(make_run$stderr))
 		cat('\n\n')
-		return(invisible(NULL))
+		if(sys.parent()==0){ #function is being called from the global env
+			return(invisible(NULL))
+		}else{
+			return(FALSE)
+		}
 	}
+	cat(crayon::blue('  ✓ Compile complete\n'))
 
 	#move exe & delete the hpp
 	fs::file_move(exe_path_for_compile,exe_path)
@@ -107,7 +114,7 @@ compile = function(code_path){
 
 	#Perform runtime check
 	debug_run = processx::run(
-		command = paste0('./',mod_name)
+		command = paste0('./',exe_path)
 		, args = c(
 			'sample'
 			, 'num_samples=1'
@@ -118,14 +125,13 @@ compile = function(code_path){
 			, 'data'
 			, paste0('file=',dbg_path)
 			, 'output'
-			, paste0('file=',fs::path_ext_set(mod_name,ext='.log'))
+			, paste0('file=',fs::path_ext_set(dbg_path,ext='csv'))
 		)
-		, wd = 'stan_tmp'
 		, error_on_status = F
 		, spinner = T
 	)
 	if(debug_run$stderr!=''){
-		cat(crayon::blue('  Checking for runtime errors...\U00D'))
+		#                  Checking for runtime errors...
 		cat(crayon::red('  Runtime error check FAILED.   \n\n'))
 		if(debug_run$stdout!=''){
 			cat(crayon::blue('STDOUT:\n'))
@@ -133,10 +139,18 @@ compile = function(code_path){
 		}
 		cat(crayon::blue('STDERR:\n'))
 		cat(crayon::red(debug_run$stderr),'\n',sep='')
-		return(invisible(NULL))
+		if(sys.parent()==0){ #function is being called from the global env
+			return(invisible(NULL))
+		}else{
+			return(FALSE)
+		}
 	}
-
+	#                   Checking for runtime errors...
 	cat(crayon::blue('  ✓ Runtime check passed        \n')) #spaces to overwrite old string
-	return(invisible(NULL))
+	if(sys.parent()==0){ #function is being called from the global env
+		return(invisible(NULL))
+	}else{
+		return(TRUE)
+	}
 }
 

@@ -13,10 +13,10 @@
 #' }
 check_syntax = function(code_path){
 
-	#get some paths, create stan_tmp
+	#get some paths, create aria
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	fs::dir_create('stan_tmp')
+	fs::dir_create('aria',mod_name)
 
 	stanc_syntax_check_run = processx::run(
 		command = fs::path(cmdstanr::cmdstan_path(),cmdstanr:::stanc_cmd())
@@ -36,7 +36,6 @@ check_syntax = function(code_path){
 		stanc_syntax_check_run$stdout = stringr::str_replace_all(stanc_syntax_check_run$stdout, 'Info: ', '\nInfo:\n')
 		cat(crayon::blue(stanc_syntax_check_run$stdout),'\n\n',sep='')
 		cat(crayon::red(stanc_syntax_check_run$stderr),'\n',sep='')
-		syntax_check_passed = FALSE
 	}else{
 		cat(crayon::blue('  ✓ Syntax check passed\n'))
 		syntax_check_passed = TRUE
