@@ -10,7 +10,7 @@ enable_rstudio_syntax_compile()
 NULL (invisibly)
 }
 \description{
-This function overrides \code{\link{rstan::rstudio_stanc}} with \code{\link{aria::check_syntax_and_maybe_compile}} thus enhancing Rstudio's "source on save" feature. To undo this override, use \code{\link{aria::disable_rstudio_syntax_compile}}
+This function (called when \code{aria} is loaded) overrides \code{\link{rstan::rstudio_stanc}} with \code{\link{aria::check_syntax_and_maybe_compile}} thus enhancing Rstudio's "source on save" feature. To undo this override, use \code{\link{aria::disable_rstudio_syntax_compile}}
 }
 \examples{
 \dontrun{
