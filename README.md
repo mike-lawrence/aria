@@ -33,4 +33,6 @@ library(aria) #loads aria & enables enhanced "Check on Save" in RStudio
 #   Note we pass the path to the Stan code; aria will go find the exe
 sample( data = my_data, code_path = 'stan/my_mod.stan' )
 
+#sample returns NULL invisibly but launches sampling in the background with an RStudio Job to monitor the progress.
+
 ```
