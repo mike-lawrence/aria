@@ -12,7 +12,7 @@ You probably you shouldn't, not yet at least. That is, this package is still in 
 ### Implemented features
 * Use of `stanc3` for syntax checking in RStudio (automatically enabled on package load; see `?aria::enable_rstudio_syntax_compile`)
 * Option to trigger model compilation on save with a `\\compile:1` string at the top of your Stan file
-* Smart compilation whereby the saved model is compared to a stored (in `stan_tmp`) representation and compilation only proceeds if *functional* changes to the code have been made. So go ahead and add comments and modify whitespace without fear that they will cause unnecessary model recompilation.
+* Smart compilation whereby the saved model is compared to a stored (in a folder called `aria`) representation and compilation only proceeds if *functional* changes to the code have been made. So go ahead and add comments and modify whitespace without fear that they will cause unnecessary model recompilation.
 * Background sampling, whereby sampling does not block the main R process, enabling you to work on other things during sampling without creating a new session. [Caution: still working on both monitoring the background processes so they can be killed if the user desires, and also on the reading of their results (though this latter is pretty easy with the other packages)]
 
 ### Features under development
