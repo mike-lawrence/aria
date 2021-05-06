@@ -2,30 +2,37 @@
 % Please edit documentation in R/sample.R
 \name{sample}
 \alias{sample}
-\title{Title}
+\title{Sample the posterior given data & a Stan model}
 \usage{
-sample(
-  data,
-  code_path,
-  num_warmup = 1000,
-  num_samples = 1000,
-  num_chains = NULL,
-  start_seed = 1
-)
+sample(data, code_path, num_chains = NULL, run_args_list = NULL)
 }
 \arguments{
 \item{data}{list() (or \code{tibble::lst()}) object containing the data.}
 
 \item{code_path}{Character string describing the path to the Stan code.}
+
+\item{num_chains}{Integer value indicating the number of chains. If NULL (the default), \code{\link{parallel::detectCores()}/2} will be used. If negative, \code{\link{parallel::detectCores()}/2-num_cores} will be used. Otherwise, \code{num_cores} will be used.}
+
+\item{run_args_list}{list object with a two-level hierarchical structure matching what cmdstan expects in terms of runtime arguments. If NULL (the default), aria will select some defaults.}
 }
 \value{
-NULL (invisibly); Side effects: background processes are
+NULL (invisibly); Side effects: \code{num_chains} sampling processes are launched in the background.
+#' @export
 }
 \description{
-Title
+Sample the posterior given data & a Stan model
 }
 \examples{
 \dontrun{
-sample(my_data,'my_model.stan')
+#example for setting seed argument
+sample(
+    data = my_data
+    , model = 'my_model.stan'
+    , run_args_list = list(
+        random = list(
+            seed = 123
+        )
+    )
+)
 }
 }
