@@ -22,3 +22,15 @@ You probably you shouldn't, not yet at least. That is, this package is still in 
 * Resuming sampling of unexpectedly-terminated chains.
 * Data-Model stamped sampling, warning the user when they are re-sampling a data-and-model combination that already has posterior results anywhere in the working directory (achieved by quickly checking a header in any netCDF files found).  
 
+## Examples
+```r
+library(aria) #loads aria & enables enhanced "Check on Save" in RStudio
+
+# work on your stan file in rstudio; when passing syntax checks, put "\\compile:1" at the top (no quotes) and it will compile next time you save.
+
+#sample using a compiled model & data
+#   Note data-first & functional-programming-oriented design
+#   Note we pass the path to the Stan code; aria will go find the exe
+sample( data = my_data, code_path = 'stan/my_mod.stan' )
+
+```
