@@ -1,5 +1,7 @@
 # aria
-An R package implementing an idiosyncratic Stan workflow.
+An R package implementing an idiosyncratic Stan workflow. 
+
+Install via `remotes::install_github('mike-lawrence/aria/aria')`
 
 ## Why "aria"?
 Where [Stan](https://mc-stan.org/) is eponymous for [Stanislaw Ulam](https://en.wikipedia.org/wiki/Stanislaw_Ulam), this package was inspired by [Gelman, 2021](https://statmodeling.stat.columbia.edu/2021/02/09/maybe-we-shouldve-called-it-arianna/) to pay homage to [Arianna Rosenbluth](https://en.wikipedia.org/wiki/Arianna_W._Rosenbluth), with liberties taken to employ a shorter sobriquet that happens also to connote the fact that this is a [solo](https://en.wikipedia.org/wiki/Aria) project of mine.
