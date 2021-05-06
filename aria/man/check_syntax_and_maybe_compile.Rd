@@ -13,7 +13,7 @@ check_syntax_and_maybe_compile(code_path)
 NULL (invisibly); Side effects: if the model was compiled, an eponymous executable binary is placed in a folder called `aria` (along with some other helper files).
 }
 \description{
-This function calls \code{\link{check_syntax}}; if no syntax errors are detected, the model is then compiled with \code{\link{compile}} \strong{if-and-only-if} the stan file has a first line that is precisely \code{\\compile}.
+This function calls \code{\link{check_syntax}}; if no syntax errors are detected, the model is then compiled with \code{\link{compile}} \strong{if-and-only-if} the stan file has a first line that is precisely \code{\\compile:1}.
 }
 \examples{
 \dontrun{
