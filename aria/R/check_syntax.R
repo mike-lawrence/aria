@@ -31,14 +31,14 @@ check_syntax = function(code_path){
 		, wd = fs::path_dir(code_path)
 		, error_on_status = F
 	)
-	if((stanc_syntax_check_run$stdout!='')|(stanc_syntax_check_run$stderr!='')){
+	syntax_check_passed = !((stanc_syntax_check_run$stdout!='')|(stanc_syntax_check_run$stderr!=''))
+	if(!syntax_check_passed){
 		stanc_syntax_check_run$stdout = stringr::str_remove_all(stanc_syntax_check_run$stdout,stringr::fixed('./'))
 		stanc_syntax_check_run$stdout = stringr::str_replace_all(stanc_syntax_check_run$stdout, 'Info: ', '\nInfo:\n')
 		cat(crayon::blue(stanc_syntax_check_run$stdout),'\n\n',sep='')
 		cat(crayon::red(stanc_syntax_check_run$stderr),'\n',sep='')
 	}else{
 		cat(crayon::blue('  ✓ Syntax check passed\n'))
-		syntax_check_passed = TRUE
 	}
 	if(sys.parent()==0){ #function is being called from the global env
 		return(invisible(NULL))
