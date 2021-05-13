@@ -3,10 +3,11 @@
 #' @param data list() (or \code{tibble::lst()}) object containing the data.
 #' @param code_path Character string describing the path to the Stan code.
 #' @param num_chains Integer value indicating the number of chains. If NULL (the default), \code{\link{parallel::detectCores()}/2} will be used. If negative, \code{\link{parallel::detectCores()}/2-num_cores} will be used. Otherwise, \code{num_cores} will be used.
-#' @param run_args_list list object with a two-level hierarchical structure matching what cmdstan expects in terms of runtime arguments. If NULL (the default), aria will select some defaults.
+#' @param run_args_list list() object with a two-level hierarchical structure matching what cmdstan expects in terms of runtime arguments. If NULL (the default), aria will select some defaults.
+#' @param quiet Boolean value with TRUE (default) permitting the printing of a standard message.
 #'
 #' @return NULL (invisibly); Side effects: \code{num_chains} sampling processes are launched in the background.
-#' #' @export
+#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -26,6 +27,7 @@ sample = function(
 	, code_path
 	, num_chains = NULL
 	, run_args_list = NULL
+	, quiet = FALSE
 ){
 
 	code_file = fs::path_file(code_path)
@@ -67,7 +69,9 @@ sample = function(
 	found_chain_nums = as.numeric(fs::path_file(fs::dir_ls(dat_path,type='dir')))
 	if(length(found_chain_nums)>0){
 		chain_num_offset = max(found_chain_nums)
-		cat(crayon::cyan('Found ',length(found_chain_nums),' existing chain folders.'))
+		if(!quiet){
+			cat(crayon::cyan('Found ',length(found_chain_nums),' existing chain folders.'))
+		}
 	}else{
 		chain_num_offset = 0
 	}
@@ -88,7 +92,9 @@ sample = function(
 		)
 		saveRDS(this_process$get_pid(), fs::path(this_chain_path,'pid.rds'))
 	}
-	cat(crayon::cyan('Started sampling for chains',min(chain_num_sequence),'through',max(chain_num_sequence),'\nUse `aria::monitor()` to launch a monitor job in RStudio.'))
+	if(!quiet){
+		cat(crayon::cyan('Started sampling for chains',min(chain_num_sequence),'through',max(chain_num_sequence),'\nUse `aria::monitor()` to launch a monitor job in RStudio.'))
+	}
 	return(invisible(NULL))
 }
 
