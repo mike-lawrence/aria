@@ -93,16 +93,16 @@ sample = function(
 }
 
 #helper functions not exported ----
-run_args_list_to_vec = function(x){
-	out = c()
-	for(i in 1:length(x)){
-		out = c(out,names(x)[i])
-		y = x[[i]]
-		for(j in 1:length(y)){
-			out = c(out,paste0(names(y)[j],'=',y[[j]]))
+run_args_list_to_vec = function(x,name=NULL){
+	if(!is.list(x)){
+		return(paste0(name,'=',x))
+	}else{
+		out = name
+		for(i in 1:length(x)){
+			out = c(out,run_args_list_to_vec(x[[i]],names(x)[i]))
 		}
+		return(out)
 	}
-	return(out)
 }
 add_run_arg_if_missing = function(x,meta,name,value){
 	if(is.null(x[[meta]])){
