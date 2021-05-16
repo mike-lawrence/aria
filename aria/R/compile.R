@@ -18,10 +18,10 @@ compile = function(code_path){
 	#get some paths, create aria
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	exe_path = fs::path('aria',mod_name,'exe',fs::path_ext_remove(code_file))
+	exe_path = fs::path('aria','exes',mod_name,fs::path_ext_remove(code_file))
 	txt_path = fs::path_ext_set(exe_path,ext='txt')
 	dbg_path = fs::path_ext_set(paste0(exe_path,'_debug'),ext='json')
-	fs::dir_create('aria',mod_name,'exe')
+	fs::dir_create('aria','exes',mod_name)
 
 	#If not being called by another function, do syntax check first
 	if(sys.parent()==0){ #function is being called from the global env
@@ -63,7 +63,6 @@ compile = function(code_path){
 
 	#compile exe
 	cat(crayon::blue('  Compiling exe...\U00D'))
-	# cat(crayon::blue('  Compiling exe'))
 	exe_path_for_compile = fs::path_abs(fs::path_ext_remove(code_path)) #must be absolute
 	make_run = processx::run(
 		command = cmdstanr:::make_cmd()
@@ -125,7 +124,7 @@ compile = function(code_path){
 			, 'data'
 			, paste0('file=',dbg_path)
 			, 'output'
-			, paste0('file=',fs::path_ext_set(dbg_path,ext='csv'))
+			, paste0('file=',tempfile())
 		)
 		, error_on_status = F
 		, spinner = T

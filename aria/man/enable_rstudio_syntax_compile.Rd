@@ -2,7 +2,7 @@
 % Please edit documentation in R/enable_rstudio_syntax_compile.R
 \name{enable_rstudio_syntax_compile}
 \alias{enable_rstudio_syntax_compile}
-\title{Enable enhanced syntax check (inc. compile) in RStuidio}
+\title{Enable enhanced syntax check (inc. compile) in RStudio}
 \usage{
 enable_rstudio_syntax_compile()
 }

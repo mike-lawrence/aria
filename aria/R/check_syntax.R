@@ -16,7 +16,6 @@ check_syntax = function(code_path){
 	#get some paths, create aria
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	fs::dir_create('aria',mod_name)
 
 	stanc_syntax_check_run = processx::run(
 		command = fs::path(cmdstanr::cmdstan_path(),cmdstanr:::stanc_cmd())
