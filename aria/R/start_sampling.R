@@ -81,12 +81,10 @@ start_sampling = function(
 	exe_args_list = add_run_arg_if_missing(exe_args_list,'output','sig_figs',18)
 	# exe_args_list = add_run_arg_if_missing(exe_args_list,'output','diagnostic_file','diagnostic.csv')
 
-	#read the saved qs info
-	mod_meta = qs::qread(qs_path)
+	#create the run info list
 	run_info = tibble::lst(
-		mod_name = mod_name
-		, stan_version = mod_meta$vers
-		, vars = mod_meta$vars
+		mod_meta = qs::qread(qs_path)
+		, mod_name = mod_name
 		, num_chains = num_chains
 		, exe_args_list = exe_args_list
 		, num_warmup = ifelse(
