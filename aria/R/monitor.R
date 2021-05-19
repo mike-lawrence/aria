@@ -14,7 +14,7 @@
 #' }
 monitor = function(out_path='aria/fit.qs',as_job=TRUE){
 
-	run_info_path = fs::path('aria','runs','run_info',ext='rds')
+	run_info_path = fs::path('aria','runs','run_info',ext='qs')
 	#look for run_info
 	if(!fs::file_exists(run_info_path)){
 		stop('No run info found; did you forget to call aria::start_sampling()?')
@@ -56,7 +56,7 @@ monitor = function(out_path='aria/fit.qs',as_job=TRUE){
 
 #helper functions not exported ----
 start_jobs_and_monitor_ = function(){
-	run_info_path = fs::path('aria','runs','run_info',ext='rds')
+	run_info_path = fs::path('aria','runs','run_info',ext='qs')
 	run_info = qs::qread(run_info_path)
 	for(i_chain in 1:length(run_info$chains)){
 		if(is.null(run_info$chains[[i_chain]]$job_id)){
@@ -66,7 +66,7 @@ start_jobs_and_monitor_ = function(){
 				, progressUnits = as.integer(run_info$num_total)
 				, actions = list(
 					stop = function(id){
-						run_info_path = fs::path('aria','runs','run_info',ext='rds')
+						run_info_path = fs::path('aria','runs','run_info',ext='qs')
 						run_info = qs::qread(run_info_path)
 						for(chain in run_info$chains){
 							if(chain$job_id==id){
@@ -144,7 +144,7 @@ monitor_ = function(){
 		# %>% add_attr('meta',meta)
 		%>% add_attr('stdout',out$stdout)
 		%>% add_attr('stderr',out$stderr)
-		%>% qs::qsave(out,file=run_info$out_path)
+		%>% qs::qsave(file=run_info$out_path)
 	)
 	return(invisible(NULL))
 }
