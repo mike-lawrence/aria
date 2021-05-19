@@ -89,8 +89,8 @@ start_jobs_and_monitor_ = function(){
 }
 
 
+#' @importFrom magrittr "%>%"
 monitor_ = function(){
-	library(magrittr)
 	run_info_path = fs::path('aria','runs','run_info',ext='qs')
 	run_info = qs::qread(run_info_path)
 
