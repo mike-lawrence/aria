@@ -12,7 +12,7 @@
 #' aria::monitor()
 #' aria::collect()
 #' }
-monitor = function(out_path='aria/fit.nc4',as_job=TRUE){
+monitor = function(out_path='aria/fit.qs',as_job=TRUE){
 
 	run_info_path = fs::path('aria','runs','run_info',ext='rds')
 	#look for run_info
@@ -55,7 +55,7 @@ monitor = function(out_path='aria/fit.nc4',as_job=TRUE){
 }
 
 #helper functions not exported ----
-start_jobs_and_monitor_ = function(out_path){
+start_jobs_and_monitor_ = function(){
 	run_info_path = fs::path('aria','runs','run_info',ext='rds')
 	run_info = qs::qread(run_info_path)
 	for(i_chain in 1:length(run_info$chains)){
@@ -144,8 +144,9 @@ monitor_ = function(){
 		# %>% add_attr('meta',meta)
 		%>% add_attr('stdout',out$stdout)
 		%>% add_attr('stderr',out$stderr)
-		%>% return()
+		%>% qs::qsave(out,file=run_info$out_path)
 	)
+	return(invisible(NULL))
 }
 
 
