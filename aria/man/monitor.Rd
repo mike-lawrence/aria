@@ -21,6 +21,8 @@ Monitor sampling and collect results
 \dontrun{
 aria::start_sampling(my_data,'my_model.stan')
 aria::monitor()
-aria::collect()
+#when sampling is complete, retrieve the outputs:
+sampled = qs::qread('aria/sampled.qs')
+str(sampled,max=1) #show the list elements
 }
 }

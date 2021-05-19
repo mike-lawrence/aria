@@ -10,7 +10,9 @@
 #' \dontrun{
 #' aria::start_sampling(my_data,'my_model.stan')
 #' aria::monitor()
-#' aria::collect()
+#' #when sampling is complete, retrieve the outputs:
+#' sampled = qs::qread('aria/sampled.qs')
+#' str(sampled,max=1) #show the list elements
 #' }
 monitor = function(out_path='aria/sampled.qs',as_job=TRUE){
 
@@ -193,7 +195,9 @@ monitor_ = function(){
 		out[[i]] = dplyr::bind_rows(out[[i]],.id='chain')
 	}
 	out$meta = sampling_meta
-	qs::qsave(out,file=sampling_meta$out_path)
+	out$time = times_from_sampled(out)
+	qs::qsave(out,file=sampling_meta$out_path,preset='fast')
+	beepr::beep()
 	return(invisible(NULL))
 }
 
@@ -276,3 +280,29 @@ read_stan_csv_samples = function(x){(
 	%>% dplyr::mutate(sample = 1:dplyr::n())
 	%>% dplyr::select(sample,dplyr::everything())
 )}
+
+times_from_sampled = function(sampled){
+	elapsed = dplyr::filter(sampled$stdout,stringr::str_starts(message,' Elapsed Time'))
+	if(nrow(elapsed)==0){
+		return(NA)
+	}
+	#get times from stdout
+	(
+		elapsed
+		%>% dplyr::select(-order)
+		%>% dplyr::mutate(
+			message = stringr::str_remove_all(message,'Elapsed Time:')
+			, message = stringr::str_remove_all(message,'seconds')
+			, message = stringr::str_remove_all(message,' ')
+			, message = stringr::str_remove_all(message,"\\s*\\([^\\)]+\\)")
+			# , message = stringr::str_replace(message,'\\n',',')
+		)
+		%>% tidyr::separate(
+			col = message
+			, into = c('warmup','sampling','total')
+			, sep='\n'
+			, convert = TRUE
+		)
+		%>% dplyr::arrange(chain)
+	)
+}
