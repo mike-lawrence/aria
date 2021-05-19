@@ -45,7 +45,7 @@ compile = function(code_path){
 	)$stdout
 	if(fs::file_exists(exe_path)){
 		if(fs::file_exists(qs_path)){
-			new_digest = digest::digest(new_text,algo='xxhash64')
+			new_digest = digest::digest(new_txt,algo='xxhash64')
 			old_digest = digest::digest(qs::qread(qs_path)$mod_txt,algo='xxhash64')
 			if((old_digest==new_digest)){
 				cat(crayon::blue('  ✓ Compiled exe is up to date.'))
