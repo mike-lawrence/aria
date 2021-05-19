@@ -19,7 +19,6 @@ compile = function(code_path){
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
 	exe_path = fs::path('aria','exes',mod_name,fs::path_ext_remove(code_file))
-	txt_path = fs::path_ext_set(exe_path,ext='txt')
 	dbg_path = fs::path_ext_set(paste0(exe_path,'_debug'),ext='json')
 	qs_path = fs::path_ext_set(paste0(exe_path),ext='qs')
 	fs::dir_create('aria','exes',mod_name)
@@ -44,12 +43,10 @@ compile = function(code_path){
 		, wd = fs::path_dir(code_path)
 		, error_on_status = F
 	)$stdout
-	new_txt_path = tempfile()
-	write(new_txt,file=new_txt_path)
 	if(fs::file_exists(exe_path)){
-		if(fs::file_exists(txt_path)){
-			old_digest = digest::digest(file=txt_path,algo='xxhash64')
-			new_digest = digest::digest(file=new_txt_path,algo='xxhash64')
+		if(fs::file_exists(qs_path)){
+			new_digest = digest::digest(new_text,algo='xxhash64')
+			old_digest = digest::digest(qs::qread(qs_path)$mod_txt,algo='xxhash64')
 			if((old_digest==new_digest)){
 				cat(crayon::blue('  ✓ Compiled exe is up to date.'))
 				if(sys.parent()==0){ #function is being called from the global env
@@ -60,7 +57,6 @@ compile = function(code_path){
 			}
 		}
 	}
-	fs::file_move(new_txt_path,txt_path)
 
 	#compile exe
 	cat(crayon::blue('  Compiling exe...\U00D'))
@@ -130,6 +126,7 @@ compile = function(code_path){
 		, error_on_status = F
 		, spinner = T
 	)
+	fs::file_delete(dbg_path)
 	if(debug_run$stderr!=''){
 		#                  Checking for runtime errors...
 		cat(crayon::red('  Runtime error check FAILED.   \n\n'))
@@ -163,8 +160,8 @@ compile = function(code_path){
 	)
 	meta = jsonlite::fromJSON(info_run$stdout)
 	meta$cmdstan_version = cmdstanr::cmdstan_version()
-	qs::qsave(list(vers=vers,vars=vars),qs_path,preset='fast')
-	fs::file_delete(csv_path)
+	meta$mod_txt = new_txt
+	qs::qsave(meta,qs_path,preset='fast')
 
 	#finally, return
 	if(sys.parent()==0){ #function is being called from the global env
