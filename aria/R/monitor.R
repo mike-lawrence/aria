@@ -19,7 +19,11 @@ monitor = function(var='aria_out',as_job=TRUE){
 	if(!fs::file_exists(run_info_path)){
 		stop('No run info found; did you forget to call aria::start_sampling()?')
 	}
-	run_info = readRDS(run_info_path)
+	run_info = qs::qread(run_info_path)
+
+	#set out_path (should really have a path-is-writeable check of some sort here)
+	run_info$out_path = out_path
+	qs::qsave(run_info,run_info_path,preset='fast')
 
 	#check if we're in rstudio and force as_job=F if not
 	if(nzchar(system.file(package='rstudioapi'))){
@@ -43,7 +47,7 @@ monitor = function(var='aria_out',as_job=TRUE){
 			, workingDir = getwd()
 			, exportEnv = 'R_GlobalEnv'
 		)
-		saveRDS(run_info,run_info_path)
+		qs::qsave(run_info,run_info_path,preset='fast')
 		return(invisible(NULL))
 	}else{
 		return(aria:::monitor_())
@@ -53,7 +57,7 @@ monitor = function(var='aria_out',as_job=TRUE){
 #helper functions not exported ----
 start_jobs_and_monitor_ = function(){
 	run_info_path = fs::path('aria','runs','run_info',ext='rds')
-	run_info = readRDS(run_info_path)
+	run_info = qs::qread(run_info_path)
 	for(i_chain in 1:length(run_info$chains)){
 		if(is.null(run_info$chains[[i_chain]]$job_id)){
 			run_info$chains[[i_chain]]$job_id = aria:::jobAdd(
@@ -63,7 +67,7 @@ start_jobs_and_monitor_ = function(){
 				, actions = list(
 					stop = function(id){
 						run_info_path = fs::path('aria','runs','run_info',ext='rds')
-						run_info = readRDS(run_info_path)
+						run_info = qs::qread(run_info_path)
 						for(chain in run_info$chains){
 							if(chain$job_id==id){
 								ps::ps_interrupt(ps::ps_handle(chain$pid))
@@ -78,7 +82,7 @@ start_jobs_and_monitor_ = function(){
 				, autoRemove = FALSE
 				, show = FALSE
 			)
-			saveRDS(run_info,run_info_path)
+			qs::qsave(run_info,run_info_path,preset='fast')
 		}
 	}
 	aria:::monitor_()
@@ -87,8 +91,8 @@ start_jobs_and_monitor_ = function(){
 
 monitor_ = function(){
 	library(magrittr)
-	run_info_path = fs::path('aria','runs','run_info',ext='rds')
-	run_info = readRDS(run_info_path)
+	run_info_path = fs::path('aria','runs','run_info',ext='qs')
+	run_info = qs::qread(run_info_path)
 
 	#init lists of lists
 	out = list(
@@ -100,7 +104,7 @@ monitor_ = function(){
 	#loop until no more pids
 	while(length(run_info$chains)){
 		#save current state
-		saveRDS(run_info,run_info_path)
+		qs::qsave(run_info,run_info_path,preset='fast')
 
 		#update meta job
 		if(!is.null(run_info$meta_job_id)){

@@ -21,6 +21,8 @@ compile = function(code_path){
 	exe_path = fs::path('aria','exes',mod_name,fs::path_ext_remove(code_file))
 	txt_path = fs::path_ext_set(exe_path,ext='txt')
 	dbg_path = fs::path_ext_set(paste0(exe_path,'_debug'),ext='json')
+	csv_path = fs::path_ext_set(paste0(exe_path,'_debug'),ext='csv')
+	qs_path = fs::path_ext_set(paste0(exe_path),ext='qs')
 	fs::dir_create('aria','exes',mod_name)
 
 	#If not being called by another function, do syntax check first
@@ -124,7 +126,7 @@ compile = function(code_path){
 			, 'data'
 			, paste0('file=',dbg_path)
 			, 'output'
-			, paste0('file=',tempfile())
+			, paste0('file=',csv_path)
 		)
 		, error_on_status = F
 		, spinner = T
@@ -146,10 +148,72 @@ compile = function(code_path){
 	}
 	#                   Checking for runtime errors...
 	cat(crayon::blue('  ✓ Runtime check passed        \n')) #spaces to overwrite old string
+
+	#get metadata info to save as qs file
+	(
+		data.table::fread(
+			cmd = paste0("grep '^[#]' --color=never '", csv_path, "'")
+			, nrows=3
+			, data.table = FALSE
+			, colClasses = "character"
+			, stringsAsFactors = FALSE
+			, fill = TRUE
+			, sep = ""
+			, header = FALSE
+		)[,1]
+		%>% strsplit('= ')
+		%>% sapply(function(x){x[2]})
+		%>% paste(collapse='.')
+	) -> vers
+	(
+		data.table::fread(
+			cmd = paste0("grep '^lp' --color=never '", csv_path, "'")
+			, nrows=1
+			, data.table = FALSE
+			, colClasses = "character"
+			, stringsAsFactors = FALSE
+			, fill = TRUE
+			, sep = ","
+			, header = FALSE
+			, drop=c(1,2)
+		)
+		%>% t()
+		%>% as.vector()
+	) -> vars
+	qs::qsave(list(vers=vers,vars=vars),qs_path,preset='fast')
+	fs::file_delete(csv_path)
+
+	#finally, return
 	if(sys.parent()==0){ #function is being called from the global env
 		return(invisible(NULL))
 	}else{
 		return(TRUE)
 	}
+}
+
+
+# unexported helper functions ----
+
+get_variable_dim_info = function(x){
+	x = strsplit(run_info$vars,'.',fixed=T)
+	vars = sapply(x,function(y){y[1]})
+	uvars = unique(vars)
+	variables = list()
+	for(var in uvars){
+		variables[[var]] = list()
+		which_vars_equal_var = which(vars==var)
+		#get dims
+		variables[[var]]$ndims = length(x[[which_vars_equal_var[1]]])-1
+		if(variables[[var]]$ndims>0){
+			dim_labels = lapply(x[which_vars_equal_var],function(y){y[2:length(y)]})
+			dim_mat = matrix(
+				as.numeric(unlist(dim_labels))
+				, ncol = variables[[var]]$ndims
+				, byrow = T
+			)
+			variables[[var]]$size = apply(dim_mat,2,max)
+		}
+	}
+	return(variables)
 }
 

@@ -17,5 +17,6 @@ Imports:
     stringr,
     fs,
     digest,
-    crayon
+    crayon,
+    qs
 RoxygenNote: 7.1.1

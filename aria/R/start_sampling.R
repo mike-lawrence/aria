@@ -36,6 +36,7 @@ start_sampling = function(
 	mod_name = fs::path_ext_remove(code_file)
 	run_path = fs::path('aria','runs')
 	exe_path = fs::path('aria','exes',mod_name,mod_name)
+	qs_path = fs::path('aria','exes',mod_name,mod_name,ext='qs')
 
 	#look for exe
 	if(!fs::file_exists(exe_path)){
@@ -80,8 +81,12 @@ start_sampling = function(
 	exe_args_list = add_run_arg_if_missing(exe_args_list,'output','sig_figs',18)
 	# exe_args_list = add_run_arg_if_missing(exe_args_list,'output','diagnostic_file','diagnostic.csv')
 
+	#read the saved qs info
+	mod_meta = qs::qread(qs_path)
 	run_info = tibble::lst(
 		mod_name = mod_name
+		, stan_version = mod_meta$vers
+		, vars = mod_meta$vars
 		, num_chains = num_chains
 		, exe_args_list = exe_args_list
 		, num_warmup = ifelse(
@@ -121,9 +126,10 @@ start_sampling = function(
 		this_chain_info$pid = this_process$get_pid()
 		run_info$chains[[as.character(this_chain_num)]] = this_chain_info
 	}
-	saveRDS(
+	qs::qsave(
 		run_info
-		, fs::path(run_path,'run_info',ext='rds')
+		, fs::path(run_path,'run_info',ext='qs')
+		, preset = 'fast'
 	)
 	if(!quiet){
 		cat(crayon::cyan('Started sampling for chains',min(chain_num_sequence),'through',max(chain_num_sequence),'\nUse `aria::monitor()` to launch a monitor and collect results.'))
