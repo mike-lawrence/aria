@@ -4,7 +4,7 @@
 \alias{monitor}
 \title{Monitor sampling and collect results}
 \usage{
-monitor(out_path = "aria/fit.qs", as_job = TRUE)
+monitor(out_path = "aria/sampled.qs", as_job = TRUE)
 }
 \arguments{
 \item{out_path}{Character string describing the path to which aria will save a ArViz-compliant NetCDF4 file.}

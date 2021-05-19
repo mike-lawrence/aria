@@ -34,7 +34,7 @@ start_sampling = function(
 
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	run_path = fs::path('aria','runs')
+	run_path = fs::path('aria','sampling')
 	exe_path = fs::path('aria','exes',mod_name,mod_name)
 	qs_path = fs::path('aria','exes',mod_name,mod_name,ext='qs')
 
@@ -51,8 +51,8 @@ start_sampling = function(
 		stop('CSVs already found in aria dir. Run aria::clean_csv() first.')
 	}
 
-	#look for existing run_info
-	if(fs::file_exists(fs::path(run_path,'run_info',ext='rds'))){
+	#look for existing sampling_meta
+	if(fs::file_exists(fs::path(run_path,'sampling_meta',ext='qs'))){
 		stop('Existing run info found in aria dir. Is sampling already running? If not, run aria::clean_run() first.')
 	}
 
@@ -82,7 +82,7 @@ start_sampling = function(
 	# exe_args_list = add_run_arg_if_missing(exe_args_list,'output','diagnostic_file','diagnostic.csv')
 
 	#create the run info list
-	run_info = tibble::lst(
+	sampling_meta = tibble::lst(
 		mod_meta = qs::qread(qs_path)
 		, mod_name = mod_name
 		, num_chains = num_chains
@@ -122,11 +122,11 @@ start_sampling = function(
 		this_chain_info$id = this_chain_num
 		this_chain_info$path = this_chain_path
 		this_chain_info$pid = this_process$get_pid()
-		run_info$chains[[as.character(this_chain_num)]] = this_chain_info
+		sampling_meta$chains[[as.character(this_chain_num)]] = this_chain_info
 	}
 	qs::qsave(
-		run_info
-		, fs::path(run_path,'run_info',ext='qs')
+		sampling_meta
+		, fs::path(run_path,'sampling_meta',ext='qs')
 		, preset = 'fast'
 	)
 	if(!quiet){

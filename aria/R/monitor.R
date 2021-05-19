@@ -12,18 +12,18 @@
 #' aria::monitor()
 #' aria::collect()
 #' }
-monitor = function(out_path='aria/fit.qs',as_job=TRUE){
+monitor = function(out_path='aria/sampled.qs',as_job=TRUE){
 
-	run_info_path = fs::path('aria','runs','run_info',ext='qs')
-	#look for run_info
-	if(!fs::file_exists(run_info_path)){
+	sampling_meta_path = fs::path('aria','sampling','sampling_meta',ext='qs')
+	#look for sampling_meta
+	if(!fs::file_exists(sampling_meta_path)){
 		stop('No run info found; did you forget to call aria::start_sampling()?')
 	}
-	run_info = qs::qread(run_info_path)
+	sampling_meta = qs::qread(sampling_meta_path)
 
 	#set out_path (should really have a path-is-writeable check of some sort here)
-	run_info$out_path = out_path
-	qs::qsave(run_info,run_info_path,preset='fast')
+	sampling_meta$out_path = out_path
+	qs::qsave(sampling_meta,sampling_meta_path,preset='fast')
 
 	#check if we're in rstudio and force as_job=F if not
 	if(nzchar(system.file(package='rstudioapi'))){
@@ -41,13 +41,13 @@ monitor = function(out_path='aria/fit.qs',as_job=TRUE){
 			'aria:::start_jobs_and_monitor_()'
 			, file = temp_file
 		)
-		run_info$monitor_job_id = aria:::jobRunScript(
+		sampling_meta$monitor_job_id = aria:::jobRunScript(
 			path = temp_file
-			, name = run_info$mod_name
+			, name = sampling_meta$mod_name
 			, workingDir = getwd()
 			, exportEnv = 'R_GlobalEnv'
 		)
-		qs::qsave(run_info,run_info_path,preset='fast')
+		qs::qsave(sampling_meta,sampling_meta_path,preset='fast')
 		return(invisible(NULL))
 	}else{
 		return(aria:::monitor_())
@@ -56,19 +56,19 @@ monitor = function(out_path='aria/fit.qs',as_job=TRUE){
 
 #helper functions not exported ----
 start_jobs_and_monitor_ = function(){
-	run_info_path = fs::path('aria','runs','run_info',ext='qs')
-	run_info = qs::qread(run_info_path)
-	for(i_chain in 1:length(run_info$chains)){
-		if(is.null(run_info$chains[[i_chain]]$job_id)){
-			run_info$chains[[i_chain]]$job_id = aria:::jobAdd(
-				name = paste0('└Chain ',run_info$chains[[i_chain]]$id)
+	sampling_meta_path = fs::path('aria','sampling','sampling_meta',ext='qs')
+	sampling_meta = qs::qread(sampling_meta_path)
+	for(i_chain in 1:length(sampling_meta$chains)){
+		if(is.null(sampling_meta$chains[[i_chain]]$job_id)){
+			sampling_meta$chains[[i_chain]]$job_id = aria:::jobAdd(
+				name = paste0('└Chain ',sampling_meta$chains[[i_chain]]$id)
 				, status = 'Initializing'
-				, progressUnits = as.integer(run_info$num_total)
+				, progressUnits = as.integer(sampling_meta$num_total)
 				, actions = list(
 					stop = function(id){
-						run_info_path = fs::path('aria','runs','run_info',ext='qs')
-						run_info = qs::qread(run_info_path)
-						for(chain in run_info$chains){
+						sampling_meta_path = fs::path('aria','sampling','sampling_meta',ext='qs')
+						sampling_meta = qs::qread(sampling_meta_path)
+						for(chain in sampling_meta$chains){
 							if(chain$job_id==id){
 								ps::ps_interrupt(ps::ps_handle(chain$pid))
 							}
@@ -82,7 +82,7 @@ start_jobs_and_monitor_ = function(){
 				, autoRemove = FALSE
 				, show = FALSE
 			)
-			qs::qsave(run_info,run_info_path,preset='fast')
+			qs::qsave(sampling_meta,sampling_meta_path,preset='fast')
 		}
 	}
 	aria:::monitor_()
@@ -91,8 +91,8 @@ start_jobs_and_monitor_ = function(){
 
 #' @importFrom magrittr "%>%"
 monitor_ = function(){
-	run_info_path = fs::path('aria','runs','run_info',ext='qs')
-	run_info = qs::qread(run_info_path)
+	sampling_meta_path = fs::path('aria','sampling','sampling_meta',ext='qs')
+	sampling_meta = qs::qread(sampling_meta_path)
 
 	#init lists of lists
 	out = list(
@@ -102,18 +102,18 @@ monitor_ = function(){
 	)
 
 	#loop until no more pids
-	while(length(run_info$chains)){
+	while(length(sampling_meta$chains)){
 		#save current state
-		qs::qsave(run_info,run_info_path,preset='fast')
+		qs::qsave(sampling_meta,sampling_meta_path,preset='fast')
 
 		#update meta job
-		if(!is.null(run_info$meta_job_id)){
+		if(!is.null(sampling_meta$meta_job_id)){
 			aria:::jobSetStatus(
-				run_info$meta_job_id
+				sampling_meta$meta_job_id
 				, paste0(
-					length(run_info$chains)
+					length(sampling_meta$chains)
 					, ' chains running, '
-					, run_info$num_chains - length(run_info$chains)
+					, sampling_meta$num_chains - length(sampling_meta$chains)
 					, ' chains completed'
 				)
 			)
@@ -121,7 +121,7 @@ monitor_ = function(){
 
 		#get list of running processes
 		all_running_processes = ps::ps_pids()
-		for(chain in run_info$chains){
+		for(chain in sampling_meta$chains){
 			if(!(chain$pid %in% all_running_processes)){
 				#chain is complete, gather
 				out$stdout[[as.character(chain$id)]] = read_stan_std(fs::path(chain$path,'stdout.txt'))
@@ -129,13 +129,13 @@ monitor_ = function(){
 				out$samples[[as.character(chain$id)]] = read_stan_csv_samples(fs::path(chain$path,'out.csv'))
 				fs::dir_delete(chain$path)
 				if(!is.null(chain$job_id)){
-					aria:::jobAddProgress(chain$job_id,run_info$num_total)
+					aria:::jobAddProgress(chain$job_id,sampling_meta$num_total)
 				}
-				run_info$chains[[which(names(run_info$chains)==chain$id)]] = NULL
+				sampling_meta$chains[[which(names(sampling_meta$chains)==chain$id)]] = NULL
 			}
 		}
 	}
-	fs::dir_delete(fs::path('aria','runs'))
+	fs::dir_delete(fs::path('aria','sampling'))
 	for(i in 1:length(out)){
 		out[[i]] = dplyr::bind_rows(out[[i]],.id='chain')
 	}
