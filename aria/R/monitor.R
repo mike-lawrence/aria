@@ -1,18 +1,18 @@
 #' Monitor sampling and collect results
 #'
-#' @param var Character string describing the desired name of the variable to save to the global workspace.
+#' @param out_path Character string describing the path to which aria will save a ArViz-compliant NetCDF4 file.
 #' @param as_job Boolean value, when TRUE (default) launches RStudio Jobs to convey progress information.
 
-#' @return NULL (invisibly); Side effects: if .
+#' @return NULL (invisibly); Side effects: Launches a background process (as an RStudio job if run from RStudio and \code{as_job} is TRUE) to monitor the output of sampling
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' #example for setting seed argument
 #' aria::start_sampling(my_data,'my_model.stan')
 #' aria::monitor()
+#' aria::collect()
 #' }
-monitor = function(var='aria_out',as_job=TRUE){
+monitor = function(out_path='aria/fit.nc4',as_job=TRUE){
 
 	run_info_path = fs::path('aria','runs','run_info',ext='rds')
 	#look for run_info
@@ -38,7 +38,7 @@ monitor = function(var='aria_out',as_job=TRUE){
 	if(as_job){
 		temp_file = tempfile()
 		write(
-			paste(var,"= aria:::start_jobs_and_monitor_()")
+			'aria:::start_jobs_and_monitor_()'
 			, file = temp_file
 		)
 		run_info$monitor_job_id = aria:::jobRunScript(
@@ -55,7 +55,7 @@ monitor = function(var='aria_out',as_job=TRUE){
 }
 
 #helper functions not exported ----
-start_jobs_and_monitor_ = function(){
+start_jobs_and_monitor_ = function(out_path){
 	run_info_path = fs::path('aria','runs','run_info',ext='rds')
 	run_info = qs::qread(run_info_path)
 	for(i_chain in 1:length(run_info$chains)){

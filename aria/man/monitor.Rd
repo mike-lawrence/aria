@@ -4,23 +4,23 @@
 \alias{monitor}
 \title{Monitor sampling and collect results}
 \usage{
-monitor(var = "aria_out", as_job = TRUE)
+monitor(out_path = "aria/fit.nc4", as_job = TRUE)
 }
 \arguments{
-\item{var}{Character string describing the desired name of the variable to save to the global workspace.}
+\item{out_path}{Character string describing the path to which aria will save a ArViz-compliant NetCDF4 file.}
 
 \item{as_job}{Boolean value, when TRUE (default) launches RStudio Jobs to convey progress information.}
 }
 \value{
-NULL (invisibly); Side effects: if .
+NULL (invisibly); Side effects: Launches a background process (as an RStudio job if run from RStudio and \code{as_job} is TRUE) to monitor the output of sampling
 }
 \description{
 Monitor sampling and collect results
 }
 \examples{
 \dontrun{
-#example for setting seed argument
 aria::start_sampling(my_data,'my_model.stan')
 aria::monitor()
+aria::collect()
 }
 }
