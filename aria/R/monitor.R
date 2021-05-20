@@ -98,57 +98,6 @@ monitor_ = function(){
 
 	#should put a check here if the processes died before writing any output
 
-	# #check for existing nc4 file
-	# nc4_path = fs::path('aria','sampling','fit',ext='nc4')
-	# if(!fs::file_exists(nc4_path)){
-	# 	nc4 = RNetCDF::create.nc(
-	# 		filename = nc4_path
-	# 		, format = 'netcdf4'
-	# 		#arguments below are set off-default for performance
-	# 		, share = TRUE
-	# 		, prefill = FALSE
-	# 		, diskless = TRUE
-	# 		, persist = TRUE
-	# 	)
-	# 	for(grp_name in c('posterior','sample_stats')){
-	# 		grp = RNetCDF::grp.def.nc(nc4,grp_name)
-	# 		RNetCDF::dim.def.nc(grp,'chain',sampling_meta$num_chains)
-	# 		RNetCDF::dim.def.nc(grp,'draw',sampling_meta$num_total)
-	# 		RNetCDF::var.def.nc(grp,'chain','NC_UBYTE','chain')
-	# 		RNetCDF::var.def.nc(grp,'draw','NC_USHORT','draw')
-	# 		if(grp_name=='posterior'){
-	# 			var_names = names(sampling_meta$vars)
-	# 			var_types = rep('NC_DOUBLE',times=length(var_names))
-	# 		}else{
-	# 			var_names = c('accept_stat','stepsize' ,'treedepth','n_leapfrog','diverging','energy'   ,'lp')
-	# 			var_types = c( 'NC_DOUBLE'  ,'NC_DOUBLE','NC_UBYTE' ,'NC_USHORT' ,'NC_UBYTE' ,'NC_DOUBLE','NC_DOUBLE')
-	# 		}
-	# 		for(i in 1:length(var_names)){
-	# 			var_dims = c('chain','draw')
-	# 			if(grp_name=='posterior'){
-	# 				if(sampling_meta$vars[[i]]$ndims>0){
-	# 					for(j in 1:sampling_meta$vars[[i]]$ndims){
-	# 						dim_name = paste(var_names[i],j,sep='.')
-	# 						RNetCDF::dim.def.nc(
-	# 							grp
-	# 							, dim_name
-	# 							, sampling_meta$vars[[i]]$size[j]
-	# 						)
-	# 						var_dims = c(var_dims,dim_name)
-	# 					}
-	# 				}
-	# 			}
-	# 			RNetCDF::var.def.nc(grp,var_names[i],var_types[i],var_dims)
-	# 		}
-	# 	}
-	# 	RNetCDF::print.nc(nc4)
-	#
-	# 	grp_sample_stats = RNetCDF::grp.def.nc(nc4,'sample_stats')
-	# }else{
-	# 	ex4 = RNetCDF::open.nc('centered_eight.nc')
-	# 	RNetCDF::print.nc(ex4)
-	# }
-
 	#init lists of lists
 	out = list(
 		samples = list()
