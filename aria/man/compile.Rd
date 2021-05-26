@@ -4,7 +4,7 @@
 \alias{compile}
 \title{Compile Stan code and check for runtime errors}
 \usage{
-compile(code_path)
+compile(code_path, as_job = TRUE)
 }
 \arguments{
 \item{code_path}{Character string describing the path to the Stan code.}
