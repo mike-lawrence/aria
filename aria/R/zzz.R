@@ -1,4 +1,4 @@
-rstan_message_necessary = TRUE
+rstan_message_necessary = FALSE
 .onLoad <- function(libname, pkgname){
 	#only run if rstan is present
 	if(nzchar(system.file(package='rstan'))){
