@@ -12,11 +12,12 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 ### Implemented features
 * Use of `stanc3` for syntax checking in RStudio (automatically enabled on package load; see `?aria::enable_rstudio_syntax_compile`)
 * Option to trigger model compilation on save with a `\\compile:1` string at the top of your Stan file
+* Background compilation as an RStudio Job
 * Smart compilation whereby the saved model is compared to a stored (in a folder called `aria`) representation and compilation only proceeds if *functional* changes to the code have been made (n.b. including to any includes!). So go ahead and add comments and modify whitespace without fear that they will cause unnecessary model recompilation.
 * Background sampling, whereby sampling does not block the main R process, enabling you to work on other things during sampling without creating a new session. If using RStudio and using defaults to `aria::monitor()`, the sampling progress is visible in the RStudio Jobs pane. 
 
 ### Features under development
-* Nicer progress indicators, including the above noted performance metrics and estimated time remaining, all appearing using the RStudio Jobs interface.
+* Nicer progress indicators, including the diagnostics and estimated time remaining, all appearing using the RStudio Jobs interface.
 * During-sampling redirection of output to an [ArviZ](https://arviz-devs.github.io/arviz/)-compliant file format, enabling faster post-sampling access to the output data as well as during-sampling monitoring of diagnostics & posterior samples.
 * Diagnostics-driven sampling, whereby the model performance is monitored on a variety of criteria (divergences encountered, rhats, ESS; also standard sample-count as well as wall-time) and terminates only when those criteria are met.
 * Resuming sampling of unexpectedly-terminated chains.
@@ -30,7 +31,7 @@ library(aria) #loads aria & enables enhanced "Check on Save" in RStudio
 #sample using a compiled model & data
 #   Note data-first & functional-programming-oriented design
 #   Note we pass the path to the Stan code; aria will go find the exe
-sample( data = my_data, code_path = 'stan/my_mod.stan' )
+aria::sample( data = my_data, code_path = 'stan/my_mod.stan' )
 
 #sample returns NULL invisibly but launches sampling in the background with an RStudio Job to monitor the progress.
 
