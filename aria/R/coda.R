@@ -5,8 +5,8 @@
 #'
 #' @examples
 #' \dontrun{
-#' p = aria::collect()
+#' p = aria::coda()
 #' }
-collect = function(){
+coda = function(){
 	qs::qread(fs::path('aria','sampled',ext='qs'))
 }

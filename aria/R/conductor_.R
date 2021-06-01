@@ -146,7 +146,7 @@ conductor_ = function(){
 		, preset = 'fast'
 	)
 	beepr::beep()
-	cat(crayon::cyan('Composition complete. To access the results, see ?aria::collect()'))
+	cat(crayon::cyan('Composition complete. To access the results, see ?aria::coda()'))
 
 	return(invisible(NULL))
 }
