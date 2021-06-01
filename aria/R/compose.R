@@ -40,7 +40,7 @@ compose = function(
 	fs::dir_create(data_dir)
 	#get the digest and thereby path
 	data_digest = digest::digest(data,algo='xxhash64')
-	data_file = fs::path(data_dir,data_digest,ext='.json')
+	data_file = fs::path(data_dir,data_digest,ext='json')
 	#if it doesn't already exist, write as json
 	if(!fs::file_exists(data_file)){
 		write(
