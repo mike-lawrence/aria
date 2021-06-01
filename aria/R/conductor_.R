@@ -18,7 +18,7 @@ conductor_ = function(){
 	run_dir = fs::path('aria','sampling')
 	debug_exe_file = fs::path('aria','exes',mod_name,'debug')
 	fast_exe_file = fs::path('aria','exes',mod_name,'fast')
-	mod_info_path = fs::path('aria','exes',mod_name,'info',ext='qs')
+	mod_info_file = fs::path('aria','exes',mod_name,'info',ext='qs')
 
 	#look for exe
 	if(!fs::file_exists(fast_exe_file)){
@@ -29,7 +29,7 @@ conductor_ = function(){
 		stop(crayon::red('CSVs already found in aria dir. Run aria::clean_csv() first.'))
 	}
 
-	if(!runtime_check_(debug_exe_path,data_file)){
+	if(!runtime_check_(debug_exe_file,data_file)){
 		return(invisible(NULL))
 	}
 
@@ -55,7 +55,7 @@ conductor_ = function(){
 	# exe_args_list = add_run_arg_if_missing(exe_args_list,'output','diagnostic_file','diagnostic.csv')
 	sampling_info$exe_args_list = exe_args_list
 
-	sampling_info$mod_info = qs::qread(mod_meta_file)
+	sampling_info$mod_info = qs::qread(mod_info_file)
 
 	#create the run info list
 	sampling_info$num_warmup = ifelse(
@@ -69,37 +69,35 @@ conductor_ = function(){
 		, 1e3
 		, exe_args_list$sample$num_samples
 	)
-	sampling_info$num_total = num_samples+num_warmup
+	sampling_info$num_total = sampling_info$num_samples+sampling_info$num_warmup
 	sampling_info$start_time = Sys.time()
 	sampling_info$chains = list()
 
 	#iterate to start the chains
-	chain_num_sequence = chain_id_start:(num_chains+chain_id_start)
+	chain_num_sequence = chain_id_start:(sampling_info$num_chains+chain_id_start)
 	for(this_chain_num in chain_num_sequence){
-		this_chain_path = fs::path(run_dir,this_chain_num)
-		fs::dir_create(this_chain_path)
-		exe_args_list$output$file = fs::path(this_chain_path,'out.csv')
+		this_chain_dir = fs::path(run_dir,this_chain_num)
+		fs::dir_create(this_chain_dir)
+		exe_args_list$output$file = fs::path(this_chain_dir,'out.csv')
 		this_process = processx::process$new(
-			command = paste0('./',exe_path)
+			command = paste0('./',fast_exe_file)
 			, args = c(
 				paste0('id=',this_chain_num)
 				, exe_args_list_to_vec(exe_args_list)
 			)
-			, stdout = fs::path(this_chain_path,'stdout.txt')
-			, stderr = fs::path(this_chain_path,'stderr.txt')
+			, stdout = fs::path(this_chain_dir,'stdout.txt')
+			, stderr = fs::path(this_chain_dir,'stderr.txt')
 			, cleanup = FALSE
 		)
 		this_chain_info = list()
 		this_chain_info$id = this_chain_num
-		this_chain_info$path = this_chain_path
+		this_chain_info$path = this_chain_dir
 		this_chain_info$pid = this_process$get_pid()
 		sampling_info$chains[[as.character(this_chain_num)]] = this_chain_info
 	}
 
 	qs::qsave(sampling_info,sampling_info_file,preset='fast')
-	if(!quiet){
-		cat(crayon::cyan('Started sampling for chains',min(chain_num_sequence),'through',max(chain_num_sequence),'\nUse `aria::monitor()` to launch a monitor and collect results.'))
-	}
+	cat(crayon::cyan('Started sampling for chains',min(chain_num_sequence),'through',max(chain_num_sequence),'\n'))
 
 	#init lists of lists
 	out = list(
@@ -108,33 +106,31 @@ conductor_ = function(){
 		, stderr = list()
 	)
 	#loop until no more pids
-	while(length(sampling_meta$chains)){
+	while(length(sampling_info$chains)){
 		#save current state
-		qs::qsave(sampling_meta,sampling_meta_path,preset='fast')
+		qs::qsave(sampling_info,sampling_info_file,preset='fast')
 
-		#update meta job
-		if(!is.null(sampling_meta$job_id)){
-			aria:::jobSetStatus(
-				sampling_meta$job_id
-				, paste0(
-					length(sampling_meta$chains)
-					, ' chains running, '
-					, sampling_meta$num_chains - length(sampling_meta$chains)
-					, ' chains completed'
-				)
+		#update job status
+		aria:::jobSetStatus(
+			sampling_info$job_id
+			, paste0(
+				length(sampling_info$chains)
+				, ' chains running, '
+				, sampling_info$num_chains - length(sampling_info$chains)
+				, ' chains completed'
 			)
-		}
+		)
 
 		#get list of running processes
 		all_running_processes = ps::ps_pids()
-		for(chain in sampling_meta$chains){
+		for(chain in sampling_info$chains){
 			if(!(chain$pid %in% all_running_processes)){
 				#chain is complete, gather
 				out$stdout[[as.character(chain$id)]] = read_stan_std(fs::path(chain$path,'stdout.txt'))
 				out$stderr[[as.character(chain$id)]] = read_stan_std(fs::path(chain$path,'stderr.txt'))
 				out$samples[[as.character(chain$id)]] = read_stan_csv_samples(fs::path(chain$path,'out.csv'))
 				fs::dir_delete(chain$path)
-				sampling_meta$chains[[which(names(sampling_meta$chains)==chain$id)]] = NULL
+				sampling_info$chains[[which(names(sampling_info$chains)==chain$id)]] = NULL
 			}
 		}
 	}
@@ -142,10 +138,15 @@ conductor_ = function(){
 	for(i in 1:length(out)){
 		out[[i]] = dplyr::bind_rows(out[[i]],.id='chain')
 	}
-	out$meta = sampling_meta
+	out$info = sampling_info
 	out$time = times_from_sampled(out)
-	qs::qsave(out,file=sampling_meta$out_path,preset='fast')
+	qs::qsave(
+		out
+		, file = fs::path('aria','sampled',ext='qs')
+		, preset = 'fast'
+	)
 	beepr::beep()
+	cat(crayon::cyan('Composition complete. To access the results, see ?aria::collect()'))
 
 	return(invisible(NULL))
 }
@@ -207,6 +208,8 @@ nodep_hack('rstudioapi','jobAdd')
 jobAddProgress = nodep_hack_default
 nodep_hack('rstudioapi','jobAddProgress')
 
+jobSetStatus = nodep_hack_default
+nodep_hack('rstudioapi','jobSetStatus')
 
 add_attr = function(data,name,value){
 	attr(data,name) = value
@@ -225,7 +228,7 @@ read_stan_std = function(x){
 	}
 }
 
-read_stan_csv_meta = function(x){
+read_stan_csv_comments = function(x){
 	data.table::fread(
 		cmd = paste0("grep '^[#a-zA-Z]' --color=never '", x, "'")
 		, data.table = FALSE
