@@ -1,4 +1,4 @@
-#' Sample
+#' Derive a posterior through composition of a model & data
 #'
 #' @param data list() (or \code{tibble::lst()}) object containing the data.
 #' @param code_path Character string describing the path to the Stan code.
@@ -13,7 +13,7 @@
 #' @examples
 #' \dontrun{
 #' #example for setting seed argument
-#' sample(
+#' compose(
 #'     data = my_data
 #'     , model = 'my_model.stan'
 #'     , exe_args_list = list(
@@ -24,7 +24,7 @@
 #' )
 #' }
 #'
-sample = function(
+compose = function(
 	data
 	, code_path
 	, num_chains = NULL
