@@ -35,9 +35,12 @@ compose = function(
 
 	mod_name = fs::path_ext_remove(fs::path_file(code_path))
 	data_dir = fs::path('aria','data')
+	run_dir = fs::path('aria','sampling')
 
-	# ensure data dir exists
+	# ensure dirs exist
 	fs::dir_create(data_dir)
+	fs::dir_create(run_dir)
+
 	#get the digest and thereby path
 	data_digest = digest::digest(data,algo='xxhash64')
 	data_file = fs::path(data_dir,data_digest,ext='json')
@@ -71,7 +74,7 @@ compose = function(
 	)
 	qs::qsave(
 		sampling_info
-		, fs::path('aria','sampling','info',ext='qs')
+		, fs::path(run_dir,'info',ext='qs')
 		, preset = 'fast'
 	)
 
