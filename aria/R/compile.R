@@ -13,35 +13,7 @@
 #' \dontrun{
 #' compile('my_model.stan')
 #' }
-compile = function(code_path,as_job=TRUE){
-	#check if we're in rstudio and force as_job=F if not
-	if(nzchar(system.file(package='rstudioapi'))){
-		if(!eval(parse(text='rstudioapi::isAvailable()'))){ # using eval() to avoid inducing dependency
-			as_job = FALSE
-		}
-	}else{
-		as_job = FALSE
-	}
-
-	#start monitor_
-	if(as_job){
-		temp_file = tempfile()
-		write(
-			paste0('aria:::compile_("',code_path,'")')
-			, file = temp_file
-		)
-		aria:::jobRunScript(
-			path = temp_file
-			, name = paste0('Compiling "',code_path,'"')
-			, workingDir = getwd()
-		)
-		return(invisible(NULL))
-	}else{
-		return(aria:::compile_(code_path))
-	}
-
-}
-compile_ = function(code_path){
+compile = function(code_path){
 
 	#get some paths, create aria
 	code_file = fs::path_file(code_path)

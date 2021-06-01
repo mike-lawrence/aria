@@ -24,16 +24,27 @@ check_syntax_and_maybe_compile = function(code_path){
 			, envir = as.environment("package:aria")
 		)
 	}
+	if(readLines(code_path,n=1)=='//compile:1'){
+		temp_file = tempfile()
+		write(
+			paste0('aria:::check_and_compile_("',code_path,'")')
+			, file = temp_file
+		)
+		aria:::jobRunScript(
+			path = temp_file
+			, name = paste0('Checking & compiling "',code_path,'"')
+			, workingDir = getwd()
+		)
+	}else{
+		check_syntax(code_path)
+	}
+	return(invisible(NULL))
 
-	#first a syntax check
+}
+check_and_compile_ = function(code_path){
 	if(!check_syntax(code_path)){ #check_syntax returns TRUE if passed
 		return(invisible(NULL))
 	}
-	#check if the compile string begins the stan file
-	if(readLines(code_path,n=1)=='//compile:1'){
-		compile_out = compile(code_path)
-	}
-
+	compile(code_path)
 	return(invisible(NULL))
 }
-
