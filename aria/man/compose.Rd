@@ -9,8 +9,7 @@ compose(
   code_path,
   num_chains = NULL,
   chain_id_start = 1,
-  exe_args_list = NULL,
-  quiet = FALSE
+  exe_args_list = NULL
 )
 }
 \arguments{
@@ -23,11 +22,9 @@ compose(
 \item{chain_id_start}{Integer value (default: 1) indicating An offset for the numeric chain identifiers. Useful if you have already run a set of chains, collected the results, and want to run more chains.}
 
 \item{exe_args_list}{list() object with a named hierarchical structure matching what exe expects in terms of runtime arguments (viewable via \code{\link{aria::exe_args}}). If NULL (the default), aria will select some defaults.}
-
-\item{quiet}{Boolean value with FALSE (default) permitting the printing of a standard message.}
 }
 \value{
-NULL (invisibly); Side effects: \code{num_chains} sampling processes are launched in the background.
+NULL (invisibly); Side effects: \code{num_chains} sampling processes are launched in the background with progress monitored by an RStudio Job.
 }
 \description{
 Derive a posterior through composition of a model & data
