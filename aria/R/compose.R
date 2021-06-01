@@ -55,7 +55,7 @@ compose = function(
 	#launch the conductor
 	temp_file = tempfile()
 	write('aria:::conductor_()',file=temp_file)
-	conductor_job_id = aria:::jobRunScript(
+	job_id = aria:::jobRunScript(
 		path = temp_file
 		, name = paste('Composing',mod_name)
 		, workingDir = getwd()
