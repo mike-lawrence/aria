@@ -94,7 +94,6 @@ compile = function(code_path){
 	fs::file_delete(fs::path_ext_set(code_path,'hpp'))
 
 	#Generate data for runtime check
-	cat(crayon::blue('  Checking for runtime errors...\U00D'))
 	debug_data = processx::run(
 		command = fs::path(cmdstanr::cmdstan_path(),cmdstanr:::stanc_cmd())
 		, args = c(
