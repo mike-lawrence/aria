@@ -1,6 +1,6 @@
 #' @importFrom magrittr "%>%"
 
-composer_ = function(){
+conductor_ = function(){
 	Sys.sleep(1) #to give sample() time to save sampling_info
 
 	sampling_info_file = fs::path('aria','sampling','info',ext='qs')
@@ -13,7 +13,7 @@ composer_ = function(){
 	# 	chain_id_start
 	# 	exe_args_list
 	# 	data_file
-	#	conductor_job_id
+	#	job_id
 
 	run_dir = fs::path('aria','sampling')
 	debug_exe_file = fs::path('aria','exes',mod_name,'debug')
@@ -113,9 +113,9 @@ composer_ = function(){
 		qs::qsave(sampling_meta,sampling_meta_path,preset='fast')
 
 		#update meta job
-		if(!is.null(sampling_meta$meta_job_id)){
+		if(!is.null(sampling_meta$job_id)){
 			aria:::jobSetStatus(
-				sampling_meta$meta_job_id
+				sampling_meta$job_id
 				, paste0(
 					length(sampling_meta$chains)
 					, ' chains running, '
@@ -134,9 +134,6 @@ composer_ = function(){
 				out$stderr[[as.character(chain$id)]] = read_stan_std(fs::path(chain$path,'stderr.txt'))
 				out$samples[[as.character(chain$id)]] = read_stan_csv_samples(fs::path(chain$path,'out.csv'))
 				fs::dir_delete(chain$path)
-				if(!is.null(chain$job_id)){
-					aria:::jobAddProgress(chain$job_id,sampling_meta$num_total)
-				}
 				sampling_meta$chains[[which(names(sampling_meta$chains)==chain$id)]] = NULL
 			}
 		}

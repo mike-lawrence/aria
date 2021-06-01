@@ -54,7 +54,7 @@ compose = function(
 	write('aria:::conductor_()',file=temp_file)
 	conductor_job_id = aria:::jobRunScript(
 		path = temp_file
-		, name = paste('aria conductor for',mod_name)
+		, name = paste('Composing',mod_name)
 		, workingDir = getwd()
 		, exportEnv = 'R_GlobalEnv'
 	)
@@ -67,7 +67,7 @@ compose = function(
 		, chain_id_start = chain_id_start
 		, exe_args_list = exe_args_list
 		, data_file = data_file
-		, conductor_job_id = conductor_job_id
+		, job_id = job_id
 	)
 	qs::qsave(
 		sampling_info
