@@ -111,7 +111,7 @@ conductor_ = function(){
 		qs::qsave(sampling_info,sampling_info_file,preset='fast')
 
 		#update job status
-		aria:::jobSetStatus(
+		rstudioapi::jobSetStatus(
 			sampling_info$job_id
 			, paste0(
 				length(sampling_info$chains)
@@ -172,44 +172,6 @@ add_run_arg_if_missing = function(x,info,name,value){
 	}
 	return(x)
 }
-
-nodep_hack = function(pkg,fn){
-	# utils::assignInNamespace(
-	# 	fn
-	# 	, function(...){stop('[aria] Oops! aria tried to use a function it failed to import. Please send this error message to the maintainer.')}
-	# 	, ns = 'aria'
-	# 	, envir = as.environment('package:aria')
-	# )
-	if(nzchar(system.file(package=pkg))){
-		utils::assignInNamespace(
-			fn
-			, utils::getFromNamespace(
-				fn
-				, ns = pkg
-				, envir = as.environment(paste0('package:',pkg))
-			)
-			, ns = 'aria'
-			, envir = as.environment('package:aria')
-		)
-	}
-}
-
-nodep_hack_default = function(...){stop('[aria] Oops! aria tried to use a function it failed to import. Please send this error message to the maintainer.')}
-
-jobRunScript = nodep_hack_default
-nodep_hack('rstudioapi','jobRunScript')
-
-jobRemove = nodep_hack_default
-nodep_hack('rstudioapi','jobRemove')
-
-jobAdd = nodep_hack_default
-nodep_hack('rstudioapi','jobAdd')
-
-jobAddProgress = nodep_hack_default
-nodep_hack('rstudioapi','jobAddProgress')
-
-jobSetStatus = nodep_hack_default
-nodep_hack('rstudioapi','jobSetStatus')
 
 add_attr = function(data,name,value){
 	attr(data,name) = value

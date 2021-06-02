@@ -30,7 +30,7 @@ check_syntax_and_maybe_compile = function(code_path){
 			paste0('aria:::check_and_compile_("',code_path,'")')
 			, file = temp_file
 		)
-		aria:::jobRunScript(
+		rstudioapi::jobRunScript(
 			path = temp_file
 			, name = paste0('Checking & compiling "',code_path,'"')
 			, workingDir = getwd()
