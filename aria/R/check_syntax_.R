@@ -1,17 +1,4 @@
-#' Check Stan code for syntax errors
-#'
-#' @param code_path Character string describing the path to the Stan code.
-#'
-#' @return Returns NULL invisibly if called from the global environment; if called from inside a function, returns a boolean value with TRUE indicating that the check has passed.
-#' @export
-#'
-#' @family Model checking & compilation functions
-#'
-#' @examples
-#' \dontrun{
-#' check_syntax('my_model.stan')
-#' }
-check_syntax = function(code_path){
+check_syntax_ = function(code_path){
 
 	#get some paths, create aria
 	code_file = fs::path_file(code_path)
@@ -32,6 +19,9 @@ check_syntax = function(code_path){
 	)
 	syntax_check_passed = !((stanc_syntax_check_run$stdout!='')|(stanc_syntax_check_run$stderr!=''))
 	if(!syntax_check_passed){
+		if(!getOption('aria_sotto_vocce')){
+			beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
+		}
 		stanc_syntax_check_run$stdout = stringr::str_remove_all(stanc_syntax_check_run$stdout,stringr::fixed('./'))
 		stanc_syntax_check_run$stdout = stringr::str_replace_all(stanc_syntax_check_run$stdout, 'Info: ', '\nInfo:\n')
 		cat(crayon::blue(stanc_syntax_check_run$stdout),'\n\n',sep='')

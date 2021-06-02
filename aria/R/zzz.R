@@ -14,3 +14,4 @@ rstan_message_necessary = FALSE
 	}
 	return(invisible(NULL))
 }
+options('aria_sotto_vocce' = FALSE)

@@ -1,6 +1,8 @@
 #' @importFrom magrittr "%>%"
 
-conductor_ = function(){
+conductor_ = function(aria_sotto_vocce){
+	if(is.null(aria_sotto_vocce)){ aria_sotto_vocce = FALSE }
+	options('aria_sotto_vocce'=eval(parse(text=aria_sotto_vocce)))
 	Sys.sleep(1) #to give sample() time to save sampling_info
 
 	sampling_info_file = fs::path('aria','sampling','info',ext='qs')
@@ -145,7 +147,9 @@ conductor_ = function(){
 		, file = fs::path('aria','sampled',ext='qs')
 		, preset = 'fast'
 	)
-	beepr::beep()
+	if(!getOption('aria_sotto_vocce')){
+		beepr::beep(system.file("sounds/tada.wav", package="aria"))
+	}
 	cat(crayon::cyan('Composition complete. To access the results, see ?aria::coda()'))
 
 	return(invisible(NULL))

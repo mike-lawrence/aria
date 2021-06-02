@@ -19,9 +19,6 @@ disable_rstudio_syntax_compile()
 }
 \seealso{
 Other Model checking & compilation functions: 
-\code{\link{check_syntax_and_maybe_compile}()},
-\code{\link{check_syntax}()},
-\code{\link{compile}()},
 \code{\link{enable_rstudio_syntax_compile}()}
 }
 \concept{Model checking & compilation functions}

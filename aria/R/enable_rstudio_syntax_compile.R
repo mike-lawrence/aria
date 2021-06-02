@@ -16,7 +16,7 @@ enable_rstudio_syntax_compile = function(){
 	if(nzchar(system.file(package='rstan'))){
 		utils::assignInNamespace(
 			"rstudio_stanc"
-			, check_syntax_and_maybe_compile
+			, aria:::check_syntax_and_maybe_compile_
 			, ns = "rstan"
 			, envir = as.environment("package:rstan")
 		)

@@ -54,7 +54,10 @@ compose = function(
 
 	#launch the conductor
 	temp_file = tempfile()
-	write('aria:::conductor_()',file=temp_file)
+	write(
+		paste0('aria:::conductor_(aria_sotto_vocce=',getOption('aria_sotto_vocce'),')')
+		, file=temp_file
+	)
 	job_id = aria:::jobRunScript(
 		path = temp_file
 		, name = paste('Composing',mod_name)

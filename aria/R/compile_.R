@@ -1,19 +1,4 @@
-#' Compile Stan code and check for runtime errors
-#'
-#' This function first checks if th Stan code has changed in functional ways (i.e. not comments nor whitespace), compiles when such changes exist then runs a simple test for runtime errors.
-#'
-#' @param code_path Character string describing the path to the Stan code.
-#'
-#' @return NULL (invisibly); Side effects: an eponymous executable binary is placed in a folder called `aria` (along with some other helper files).
-#' @export
-#'
-#' @family Model checking & compilation functions
-#'
-#' @examples
-#' \dontrun{
-#' compile('my_model.stan')
-#' }
-compile = function(code_path){
+compile_ = function(code_path){
 
 	#get some paths, create aria
 	code_file = fs::path_file(code_path)
@@ -23,13 +8,6 @@ compile = function(code_path){
 	debug_json_file = fs::path('aria','exes',mod_name,'debug',ext='json')
 	mod_info_file = fs::path('aria','exes',mod_name,'info',ext='qs')
 	fs::dir_create('aria','exes',mod_name)
-
-	#If not being called by another function, do syntax check first
-	if(sys.parent()==0){ #function is being called from the global env
-		if(!check_syntax(code_path)){ #check_syntax returns TRUE if passed
-			return(invisible(NULL))
-		}
-	}
 
 	#run autoformater so we only recompile on functional changes
 	new_txt = processx::run(
@@ -77,6 +55,9 @@ compile = function(code_path){
 	)
 
 	if(make_run$stderr!=''){
+		if(!getOption('aria_sotto_vocce')){
+			beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
+		}
 		cat(crayon::blue(make_run$stdout))
 		cat('\n\n')
 		cat(crayon::red(make_run$stderr))
@@ -142,6 +123,9 @@ compile = function(code_path){
 	)
 
 	if(make_run$stderr!=''){
+		if(!getOption('aria_sotto_vocce')){
+			beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
+		}
 		cat(crayon::blue(make_run$stdout))
 		cat('\n\n')
 		cat(crayon::red(make_run$stderr))
@@ -206,6 +190,9 @@ runtime_check_ = function(debug_exe_file,data_file){
 		, spinner = T
 	)
 	if(debug_run$stderr!=''){
+		if(!getOption('aria_sotto_vocce')){
+			beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
+		}
 		#                  Checking for runtime errors...
 		cat(crayon::red('  Runtime error check FAILED.   \n\n'))
 		if(debug_run$stdout!=''){
