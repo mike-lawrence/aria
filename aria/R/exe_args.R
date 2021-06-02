@@ -7,14 +7,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' exe_args('my_model.stan')
+#' show_exe_args('my_model.stan')
 #' }
-exe_args = function(code_path){
+show_exe_args = function(code_path){
 
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	mod_path = fs::path('aria',mod_name)
-	exe_path = fs::path('aria',mod_name,'exe',mod_name)
+	fast_exe_file = fs::path('aria','exes',mod_name,'fast')
 
 	#look for exe
 	if(!fs::file_exists(exe_path)){
@@ -22,7 +21,7 @@ exe_args = function(code_path){
 	}
 	#execute
 	out = processx::exe(
-		command = paste0('./',exe_path)
+		command = paste0('./',fast_exe_file)
 		, args = 'help-all'
 	)
 	crayon::blue(cat(out$stdout))
