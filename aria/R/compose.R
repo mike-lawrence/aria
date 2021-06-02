@@ -58,7 +58,7 @@ compose = function(
 		paste0('aria:::conductor_(aria_sotto_vocce=',getOption('aria_sotto_vocce'),')')
 		, file=temp_file
 	)
-	job_id = aria:::jobRunScript(
+	job_id = rstudioapi::jobRunScript(
 		path = temp_file
 		, name = paste('Composing',mod_name)
 		, workingDir = getwd()
