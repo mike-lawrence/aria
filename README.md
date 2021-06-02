@@ -1,5 +1,5 @@
 # aria
-An R package implementing an idiosyncratic Stan workflow. 
+An R package implementing an idiosyncratic Stan workflow.
 
 Install via `remotes::install_github('mike-lawrence/aria/aria')`
 
@@ -12,9 +12,8 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 ### Implemented features
 * Use of `stanc3` for syntax checking in RStudio (automatically enabled on package load; see `?aria::enable_rstudio_syntax_compile`)
 * Option to trigger model compilation on save with a `\\compile:1` string at the top of your Stan file
-* Background compilation as an RStudio Job
 * Smart compilation whereby the saved model is compared to a stored (in a folder called `aria`) representation and compilation only proceeds if *functional* changes to the code have been made (n.b. including to any includes!). So go ahead and add comments and modify whitespace without fear that they will cause unnecessary model recompilation.
-* Background sampling, whereby sampling does not block the main R process, enabling you to work on other things during sampling without creating a new session. If using RStudio and using defaults to `aria::monitor()`, the sampling progress is visible in the RStudio Jobs pane. 
+* Both compilation and sampling occur in background processes with outputs/progress monitored by an RStudio Job.
 
 ### Features under development
 * Nicer progress indicators, including the diagnostics and estimated time remaining, all appearing using the RStudio Jobs interface.
@@ -28,11 +27,13 @@ library(aria) #loads aria & enables enhanced "Check on Save" in RStudio
 
 # work on your stan file in rstudio; when passing syntax checks, put "\\compile:1" at the top (no quotes) and it will compile next time you save.
 
-#sample using a compiled model & data
+# compose a posterior given data and model
 #   Note data-first & functional-programming-oriented design
 #   Note we pass the path to the Stan code; aria will go find the exe
-aria::sample( data = my_data, code_path = 'stan/my_mod.stan' )
+aria::compose( data = my_data, code_path = 'stan/my_mod.stan' )
 
 #sample returns NULL invisibly but launches sampling in the background with an RStudio Job to monitor the progress.
 
+#when complete, retrieve the posterior via:
+post = aria::coda()
 ```
