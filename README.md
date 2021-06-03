@@ -41,7 +41,7 @@ aria::compose(
 	, out_path = 'sampled/my_data_my_mod_out.qs'
 )
 
-#sample returns NULL invisibly but launches sampling in the background with an RStudio Job to monitor the progress.
+#aria::compose() returns NULL invisibly but launches sampling in the background with an RStudio Job to monitor the progress.
 
 #when complete, retrieve the posterior via:
 post = aria::coda('sampled/my_data_my_mod_out.qs')
