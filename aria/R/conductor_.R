@@ -128,7 +128,7 @@ conductor_ = function(aria_sotto_vocce){
 			)
 			, 'stderr' = list(
 				name = 'stderr'
-				, file = stdout_file
+				, file = stderr_file
 				, parser = std_txt_to_tbl
 				, parsed = NULL
 				, old_extra = NULL
