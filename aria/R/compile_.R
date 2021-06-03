@@ -27,6 +27,9 @@ compile_ = function(code_path){
 		old_digest = digest::digest(qs::qread(mod_info_file)$mod_txt,algo='xxhash64')
 		if((old_digest==new_digest)){
 			cat(crayon::blue('  ✓ Compiled exe is up to date.'))
+			if(!getOption('aria_sotto_vocce')){
+				beepr::beep(system.file("sounds/tada.wav", package="aria"))
+			}
 			if(sys.parent()==0){ #function is being called from the global env
 				return(invisible(NULL))
 			}else{
@@ -159,6 +162,9 @@ compile_ = function(code_path){
 	mod_info$cmdstan_version = cmdstanr::cmdstan_version()
 	mod_info$mod_txt = new_txt
 	qs::qsave(mod_info,mod_info_file,preset='fast')
+	if(!getOption('aria_sotto_vocce')){
+		beepr::beep(system.file("sounds/tada.wav", package="aria"))
+	}
 
 	#finally, return
 	if(sys.parent()==0){ #function is being called from the global env
