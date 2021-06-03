@@ -10,9 +10,14 @@ check_syntax_and_maybe_compile_ = function(code_path){
 		)
 	}
 	if(readLines(code_path,n=1)=='//compile:1'){
+		aria_sotto_vocce = getOption('aria_sotto_vocce')
+		if(is.null(aria_sotto_vocce)){
+			aria_sotto_vocce = 'NULL'
+		}
+
 		temp_file = tempfile()
 		write(
-			paste0('aria:::check_and_compile_("',code_path,'",aria_sotto_vocce=',getOption('aria_sotto_vocce'),')')
+			paste0('aria:::check_and_compile_("',code_path,'",aria_sotto_vocce=',aria_sotto_vocce,')')
 			, file = temp_file
 		)
 		rstudioapi::jobRunScript(
