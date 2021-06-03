@@ -14,6 +14,11 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * Option to trigger model compilation on save with a `\\compile:1` string at the top of your Stan file
 * Smart compilation whereby the saved model is compared to a stored (in a folder called `aria`) representation and compilation only proceeds if *functional* changes to the code have been made (n.b. including to any includes!). So go ahead and add comments and modify whitespace without fear that they will cause unnecessary model recompilation.
 * Both compilation and sampling occur in background processes with outputs/progress monitored by an RStudio Job.
+* Automatic check for runtime errors at compilation using a special debugging exe and dummy data.
+* Automatic check for runtime errors at the outset of sampling using a special debugging exe and the real data
+* If no runtime errors are encountered, use of a performance-tuned exe for sampling 
+* Data are cached for faster start of sampling when the same data are sampled repeatedly
+
 
 ### Features under development
 * Nicer progress indicators, including the diagnostics and estimated time remaining, all appearing using the RStudio Jobs interface.
