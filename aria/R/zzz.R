@@ -12,6 +12,6 @@ rstan_message_necessary = FALSE
 			, envir = as.environment("package:aria")
 		)
 	}
+	options('aria_sotto_vocce' = FALSE)
 	return(invisible(NULL))
 }
-options('aria_sotto_vocce' = FALSE)
