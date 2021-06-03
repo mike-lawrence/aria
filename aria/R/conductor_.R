@@ -1,4 +1,5 @@
 #' @importFrom magrittr "%>%"
+#' @importFrom magrittr "%<>%"
 
 conductor_ = function(aria_sotto_vocce){
 	if(is.null(aria_sotto_vocce)){ aria_sotto_vocce = FALSE }
@@ -12,7 +13,7 @@ conductor_ = function(aria_sotto_vocce){
 	# 	mod_name
 	# 	code_path
 	#	num_chains
-	# 	chain_id_start
+	# 	chain_num_start
 	# 	exe_args_list
 	# 	data_file
 	#	job_id
@@ -73,78 +74,212 @@ conductor_ = function(aria_sotto_vocce){
 	)
 	sampling_info$num_total = sampling_info$num_samples+sampling_info$num_warmup
 	sampling_info$start_time = Sys.time()
-	sampling_info$chains = list()
+
+	active_chains = list() #this will be ugly AF but is a standin until I learn R6
 
 	#iterate to start the chains
-	chain_num_sequence = chain_id_start:(sampling_info$num_chains+chain_id_start)
+	chain_num_sequence = chain_num_start:(chain_num_start-1+sampling_info$num_chains)
 	for(this_chain_num in chain_num_sequence){
 		this_chain_dir = fs::path(run_dir,this_chain_num)
 		fs::dir_create(this_chain_dir)
-		exe_args_list$output$file = fs::path(this_chain_dir,'out.csv')
+		samples_file = fs::path(this_chain_dir,'out.csv')
+		stdout_file = fs::path(this_chain_dir,'stdout.txt')
+		stderr_file = fs::path(this_chain_dir,'stderr.txt')
+		exe_args_list$output$file = samples_file
 		this_process = processx::process$new(
 			command = paste0('./',fast_exe_file)
 			, args = c(
 				paste0('id=',this_chain_num)
 				, exe_args_list_to_vec(exe_args_list)
 			)
-			, stdout = fs::path(this_chain_dir,'stdout.txt')
-			, stderr = fs::path(this_chain_dir,'stderr.txt')
+			, stdout = stdout_file
+			, stderr = stderr_file
 			, cleanup = FALSE
 		)
 		this_chain_info = list()
-		this_chain_info$id = this_chain_num
+		this_chain_info$name = as.character(this_chain_num)
 		this_chain_info$path = this_chain_dir
 		this_chain_info$pid = this_process$get_pid()
-		sampling_info$chains[[as.character(this_chain_num)]] = this_chain_info
+		this_chain_info$ps_handle = ps::ps_handle(this_chain_info$pid)
+		this_chain_info$alive = TRUE
+		this_chain_info$iter_done = 0
+		this_chain_info$adapt_info = list(step_size=NULL,mass_matrix=NULL)
+		this_chain_info$output = list(
+			'samples' = list(
+				name = 'samples'
+				, file = samples_file
+				, parser = samples_csv_to_tbl
+				, parsed = tibble::tibble()
+				, old_extra = NULL
+				, header = NULL
+				, skip = 0
+				, last_file_size = 0
+			)
+			, 'stdout' = list(
+				name = 'stdout'
+				, file = stdout_file
+				, parser = std_txt_to_tbl
+				, parsed = NULL
+				, old_extra = NULL
+				, skip = 0
+				, last_file_size = 0
+				, parse_on_next_pass = FALSE
+
+			)
+			, 'stderr' = list(
+				name = 'stderr'
+				, file = stdout_file
+				, parser = std_txt_to_tbl
+				, parsed = NULL
+				, old_extra = NULL
+				, skip = 0
+				, last_file_size = 0
+				, parse_on_next_pass = FALSE
+			)
+		)
+		active_chains[[this_chain_info$name]] = this_chain_info
 	}
-
-	qs::qsave(sampling_info,sampling_info_file,preset='fast')
 	cat(crayon::cyan('Started sampling for chains',min(chain_num_sequence),'through',max(chain_num_sequence),'\n'))
+	inactive_chains = list()
 
-	#init lists of lists
-	out = list(
-		samples = list()
-		, stdout = list()
-		, stderr = list()
-	)
-	#loop until no more pids
-	while(length(sampling_info$chains)){
-		#save current state
-		qs::qsave(sampling_info,sampling_info_file,preset='fast')
+	sample_csv_col_names = strsplit(
+		system2(
+			command = "grep"
+			, args = c(
+				"'^lp'"
+				, "--color=never"
+				, active_chains[[1]]$output[['samples']]$file
+			)
+			, stdout = TRUE
+		)
+		, ','
+	)[[1]]
+
+
+	#loop until no more active chains
+	while(length(active_chains)){
+		# #save current state
+		# qs::qsave(active_chains,'active.qs',preset='fast')
+		# qs::qsave(inactive_chains,'inactive.qs',preset='fast')
 
 		#update job status
 		rstudioapi::jobSetStatus(
 			sampling_info$job_id
 			, paste0(
-				length(sampling_info$chains)
+				length(active_chains)
 				, ' chains running, '
-				, sampling_info$num_chains - length(sampling_info$chains)
+				, length(inactive_chains)
 				, ' chains completed'
 			)
 		)
 
-		#get list of running processes
-		all_running_processes = ps::ps_pids()
-		for(chain in sampling_info$chains){
-			if(!(chain$pid %in% all_running_processes)){
-				#chain is complete, gather
-				out$stdout[[as.character(chain$id)]] = read_stan_std(fs::path(chain$path,'stdout.txt'))
-				out$stderr[[as.character(chain$id)]] = read_stan_std(fs::path(chain$path,'stderr.txt'))
-				out$samples[[as.character(chain$id)]] = read_stan_csv_samples(fs::path(chain$path,'out.csv'))
-				fs::dir_delete(chain$path)
-				sampling_info$chains[[which(names(sampling_info$chains)==chain$id)]] = NULL
+		#loop over the active chains
+		for(this_chain_name in names(active_chains)){
+			#mark as dead if not active
+			if(!ps::ps_is_running(active_chains[[this_chain_name]]$ps_handle)){
+				active_chains[[this_chain_name]]$alive = FALSE
+			}
+			#loop over outputs
+			for(this_output_name in names(active_chains[[this_chain_name]]$output)){
+				last_file_size = active_chains[[this_chain_name]]$output[[this_output_name]]$last_file_size
+				new_file_size = file.size(
+					active_chains[[this_chain_name]]$output[[this_output_name]]$file
+				)
+				do_parse = FALSE
+				if( this_output_name=='samples'){
+					if(last_file_size>new_file_size){
+						do_parse = TRUE
+					}
+				}else{ #std
+					#for std's, we wait for a quiet period
+					if(last_file_size>new_file_size){
+						active_chains[[this_chain_name]]$output[[this_output_name]]$parse_on_next_pass = TRUE
+					}else{
+						if(active_chains[[this_chain_name]]$output[[this_output_name]]$parse_on_next_pass){
+							do_parse = TRUE
+							active_chains[[this_chain_name]]$output[[this_output_name]]$parse_on_next_pass = FALSE
+						}
+					}
+				}
+				# parse as necessary
+				if(do_parse){
+					# pause so filesize doesn't change while we're reading
+					if(active_chains[[this_chain_name]]$alive){
+						ps::ps_suspend(active_chains[[this_chain_name]]$ps_handle)
+					}
+					#assign file size to entry in active chains
+					active_chains[[this_chain_name]]$output[[this_output_name]]$last_file_size = file.size(
+						active_chains[[this_chain_name]]$output[[this_output_name]]$file
+					)
+					#parse
+					active_chains[[this_chain_name]]$output[[this_output_name]]$parsed %<>%
+						dplyr::bind_rows(
+							active_chains[[this_chain_name]]$output[[this_output_name]]$parser(
+								file = active_chains[[this_chain_name]]$output[[this_output_name]]$file
+								, skip = active_chains[[this_chain_name]]$output[[this_output_name]]$skip
+								, sample_csv_col_names = sample_csv_col_names
+								, chain_name = this_chain_name
+								, num_warmup = sampling_info$num_warmup
+							)
+						)
+					# update skip
+					active_chains[[this_chain_name]]$output[[this_output_name]]$skip = nrow(
+						active_chains[[this_chain_name]]$output[[this_output_name]]$parsed
+					)
+					#resume the chain if it's not already dead
+					if(active_chains[[this_chain_name]]$alive){
+						ps::ps_resume(active_chains[[this_chain_name]]$ps_handle)
+					}
+				}
+			}
+		}
+		#loop again to collect newly-inactive chains and remove them from the active list
+		for(this_chain_name in names(active_chains)){
+			if(!active_chains[[this_chain_name]]$alive){
+				#loop over outputs to parse one last time
+				for(this_output_name in names(active_chains[[this_chain_name]]$output)){
+					#parse
+					active_chains[[this_chain_name]]$output[[this_output_name]] = (
+						dplyr::bind_rows(
+							active_chains[[this_chain_name]]$output[[this_output_name]]$parsed
+							, active_chains[[this_chain_name]]$output[[this_output_name]]$parser(
+								file = active_chains[[this_chain_name]]$output[[this_output_name]]$file
+								, skip = active_chains[[this_chain_name]]$output[[this_output_name]]$skip
+								, sample_csv_col_names = sample_csv_col_names
+								, chain_name = this_chain_name
+								, num_warmup = sampling_info$num_warmup
+							)
+						)
+					)
+
+				}
+				#clean up chain info
+				# if we have adapt info, make it a matrix
+				# if(nrow(chain$adapt_info$mass_matrix)==1){
+				# 	chain$adapt_info$mass_matrix = diag(chain$adapt_info$mass_matrix)
+				# }
+				inactive_chains[[this_chain_name]] = active_chains[[this_chain_name]]$output
+				inactive_chains[[this_chain_name]]$output$adapt_info = active_chains[[this_chain_name]]$adapt_info
+				active_chains[[this_chain_name]] = NULL
 			}
 		}
 	}
+	#no more active chains, so clean up
 	fs::dir_delete(fs::path('aria','sampling'))
-	for(i in 1:length(out)){
-		out[[i]] = dplyr::bind_rows(out[[i]],.id='chain')
-	}
-	out$info = sampling_info
-	out$time = times_from_sampled(out)
+	(
+		inactive_chains
+		%>% purrr::map_dfr(list('samples'))
+		%>% dplyr::arrange(chain,iteration)
+	) -> out
+	attr(out,'stdout') = purrr::map_dfr(inactive_chains,list('stdout'))
+	attr(out,'stderr') = purrr::map_dfr(inactive_chains,list('stderr'))
+	attr(out,'adapt_info') = purrr::map(inactive_chains,list('adapt_info'))
+	attr(out,'sampling_info') = sampling_info
+	# out$info = sampling_info
+	# out$time = times_from_sampled(out)
 	qs::qsave(
 		out
-		, file = fs::path('aria','sampled',ext='qs')
+		, file = fs::path(sampling_info$out_path)
 		, preset = 'fast'
 	)
 	if(!getOption('aria_sotto_vocce')){
@@ -182,43 +317,6 @@ add_attr = function(data,name,value){
 	return(data)
 }
 
-read_stan_std = function(x){
-	chars = readChar(x,file.info(x)$size,useBytes=TRUE)
-	messages = stringi::stri_remove_empty(
-		stringr::str_split(chars,stringr::fixed('\n\n'))[[1]]
-	)
-	if(length(messages)>0){
-		return(tibble::tibble(message=messages,order=1:length(messages)))
-	}else{
-		return(NULL)
-	}
-}
-
-read_stan_csv_comments = function(x){
-	data.table::fread(
-		cmd = paste0("grep '^[#a-zA-Z]' --color=never '", x, "'")
-		, data.table = FALSE
-		, colClasses = "character"
-		, col.names = 'V1'
-		, stringsAsFactors = FALSE
-		, fill = TRUE
-		, sep = ""
-		, header = FALSE
-	)$V1
-}
-
-read_stan_csv_samples = function(x){(
-	data.table::fread(
-		cmd = paste0("grep -v '^#' --color=never '", x, "'")
-		, data.table = FALSE
-		, sep = ','
-		, colClasses = 'double'
-		, header = TRUE
-	)
-	%>% tibble::as_tibble()
-	%>% dplyr::mutate(sample = 1:dplyr::n())
-	%>% dplyr::select(sample,dplyr::everything())
-)}
 
 times_from_sampled = function(sampled){
 	elapsed = dplyr::filter(sampled$stdout,stringr::str_starts(message,' Elapsed Time'))

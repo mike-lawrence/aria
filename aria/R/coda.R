@@ -1,12 +1,14 @@
 #' Collect output from aria
 #'
-#' @return a named list with elements `samples`, `stdout`, `stderr`, `info`, & `time`.
+#' @param out_path Character string describing the path to a file where the final sampling output was saved.
+
+#' @return a tibble with samples, plus attributes: `stdout`, `stderr`, `adapt_info`, & `sampling_info`
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' p = aria::coda()
+#' p = aria::coda('sampled/sampled.qs')
 #' }
-coda = function(){
-	qs::qread(fs::path('aria','sampled',ext='qs'))
+coda = function(out_path){
+	qs::qread(out_path)
 }

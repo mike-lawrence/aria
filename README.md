@@ -35,10 +35,14 @@ library(aria) #loads aria & enables enhanced "Check on Save" in RStudio
 # compose a posterior given data and model
 #   Note data-first & functional-programming-oriented design
 #   Note we pass the path to the Stan code; aria will go find the exe
-aria::compose( data = my_data, code_path = 'stan/my_mod.stan' )
+aria::compose( 
+	data = my_data
+	, code_path = 'stan/my_mod.stan' 
+	, out_path = 'sampled/my_data_my_mod_out.qs'
+)
 
 #sample returns NULL invisibly but launches sampling in the background with an RStudio Job to monitor the progress.
 
 #when complete, retrieve the posterior via:
-post = aria::coda()
+post = aria::coda('sampled/my_data_my_mod_out.qs')
 ```

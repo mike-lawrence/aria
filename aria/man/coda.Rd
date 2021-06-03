@@ -4,16 +4,19 @@
 \alias{coda}
 \title{Collect output from aria}
 \usage{
-coda()
+coda(out_path)
+}
+\arguments{
+\item{out_path}{Character string describing the path to a file where the final sampling output was saved.}
 }
 \value{
-a named list with elements `samples`, `stdout`, `stderr`, `info`, & `time`.
+a tibble with samples, plus attributes: `stdout`, `stderr`, `adapt_info`, & `sampling_info`
 }
 \description{
 Collect output from aria
 }
 \examples{
 \dontrun{
-p = aria::coda()
+p = aria::coda('sampled/sampled.qs')
 }
 }
