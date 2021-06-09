@@ -1,7 +1,11 @@
 # aria
 An R package implementing an idiosyncratic Stan workflow.
 
-Install via `remotes::install_github('mike-lawrence/aria/aria')`
+Install via:
+```r
+remotes::install_github('mike-lawrence/aria/aria')
+```
+(Yup, that's an extra `/aria` relative to what you might be used to in terms of `install_github()` argument strings)
 
 ## Why "aria"?
 Where [Stan](https://mc-stan.org/) is eponymous for [Stanislaw Ulam](https://en.wikipedia.org/wiki/Stanislaw_Ulam), this package was inspired by [Gelman, 2021](https://statmodeling.stat.columbia.edu/2021/02/09/maybe-we-shouldve-called-it-arianna/) to pay homage to [Arianna Rosenbluth](https://en.wikipedia.org/wiki/Arianna_W._Rosenbluth), with liberties taken to employ a shorter sobriquet that happens also to connote the fact that this is a [solo](https://en.wikipedia.org/wiki/Aria) project of mine.
@@ -34,6 +38,11 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * tests; 😬
 
 ## How to use aria
+`aria` uses features that were introduced in cmstan 2.27.0, so if you haven't grabbed that yet, you need to run:
+```r
+cmdstanr::install_cmdstan(version='2.27.0')
+```
+
 When first opening a project, run:
 ```r
 aria::enable_rstudio_syntax_compile()
