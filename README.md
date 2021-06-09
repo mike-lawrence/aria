@@ -21,13 +21,17 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * Nicer progress indicators including estimated time remaining and parsimonious display of any important error messages. 
 
 ### Features under development
-* handle within-chain parallelizing compile arguments (should be easy, I just never use these, being on a meagre 4-core myself)
 * Progress indication including diagnostics
 * During-sampling redirection of output to an [ArviZ](https://arviz-devs.github.io/arviz/)-compliant file format, enabling faster post-sampling access to the output data as well as during-sampling monitoring of diagnostics & posterior samples.
 * Diagnostics-driven sampling, whereby the model performance is monitored on a variety of criteria (divergences encountered, rhats, ESS; also standard sample-count as well as wall-time) and terminates only when those criteria are met.
 * Resuming sampling of unexpectedly-terminated chains.
 * When compiling performance exe: Moving transformed parameters to model block and removing generated quantities entirely. This yields slightly less compute/write time at the cost of requiring a subsequent `aria::generate_quantities()` run.
 * `aria::generate_quantities()`, which extracts the quantities that would have been computed/saved by the code as written but moved/removed from the performance exe, puts them all in the generated quantities, compiles and runs with just the post-warmup (and possibly thinned) samples. 
+
+### Glaring omissions
+* cross-platform support; `aria` currently *should* run on unix-like systems (Linux, MacOS, WSL) but certainly won't work on Windows yet. 
+* handle within-chain parallelizing compile arguments; this *should* be easy, I just never use these, being on a meagre 4-core myself 
+* tests; 😬
 
 ## How to use aria
 When first opening a project, run:
