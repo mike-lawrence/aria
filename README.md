@@ -26,7 +26,7 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * Diagnostics-driven sampling, whereby the model performance is monitored on a variety of criteria (divergences encountered, rhats, ESS; also standard sample-count as well as wall-time) and terminates only when those criteria are met.
 * Resuming sampling of unexpectedly-terminated chains.
 
-## Examples
+## How to use aria
 When first opening a project, run:
 ```r
 aria::enable_rstudio_syntax_compile()
