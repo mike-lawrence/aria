@@ -16,17 +16,17 @@ show_exe_args = function(code_path){
 	fast_exe_file = fs::path('aria','exes',mod_name,'fast')
 
 	#look for exe
-	if(!fs::file_exists(exe_path)){
+	if(!fs::file_exists(fast_exe_file)){
 		stop(paste0('Compiled exe not found, exe `aria::compile("',code_path,'")` first.'))
 	}
 	#execute
-	out = processx::exe(
+	out = processx::run(
 		command = paste0('./',fast_exe_file)
 		, args = 'help-all'
 	)
-	crayon::blue(cat(out$stdout))
+	aria:::blue(cat(out$stdout))
 	if(!out$stderr!=''){
-		cat(crayon::red(out$stderr))
+		cat(aria:::red(out$stderr))
 	}
 	return(invisible(NULL))
 }

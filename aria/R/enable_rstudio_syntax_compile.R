@@ -1,6 +1,6 @@
 #' Enable enhanced syntax check (inc. compile) in RStudio
 #'
-#' This function (called when \code{aria} is loaded) overrides \code{\link{rstan::rstudio_stanc}} with \code{\link{aria::check_syntax_and_maybe_compile}} thus enhancing Rstudio's "source on save" feature. To undo this override, use \code{\link{aria::disable_rstudio_syntax_compile}}
+#' This function (called when \code{aria} is loaded) overrides \code{\link{rstan::rstudio_stanc}} with \code{\link{aria::check_syntaxand_maybe_compile}} thus enhancing Rstudio's "source on save" feature. To undo this override, use \code{\link{aria::disable_rstudio_syntax_compile}}
 #'
 #' @return NULL (invisibly)
 #' @export
@@ -16,7 +16,7 @@ enable_rstudio_syntax_compile = function(){
 	if(nzchar(system.file(package='rstan'))){
 		utils::assignInNamespace(
 			"rstudio_stanc"
-			, aria:::check_syntax_and_maybe_compile_
+			, aria:::check_syntax_and_maybe_compile
 			, ns = "rstan"
 			, envir = as.environment("package:rstan")
 		)

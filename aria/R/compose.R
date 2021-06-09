@@ -35,13 +35,19 @@ compose = function(
 	# as little as possible will happen in this function,
 	#  saving the bulk for the composer
 
+	# set aria_sotto_vocce
+	aria_sotto_vocce = getOption('aria_sotto_vocce')
+	if(is.null(aria_sotto_vocce)){
+		aria_sotto_vocce = FALSE
+	}
+
 	mod_name = fs::path_ext_remove(fs::path_file(code_path))
 	data_dir = fs::path('aria','data')
 	run_dir = fs::path('aria','sampling')
 
 	#ensure we can write the outputs
 	if(!fs::dir_exists(fs::path_dir(out_path))){
-		stop(crayon::red('The output directory "',fs::path_dir(out_path),'" does not exist.',sep=''))
+		stop(aria:::red('The output directory "',fs::path_dir(out_path),'" does not exist.',sep=''))
 	}
 
 	# ensure dirs exist
@@ -64,12 +70,8 @@ compose = function(
 
 	#launch the conductor
 	temp_file = tempfile()
-	aria_sotto_vocce = getOption('aria_sotto_vocce')
-	if(is.null(aria_sotto_vocce)){
-		aria_sotto_vocce = 'NULL'
-	}
 	write(
-		paste0('aria:::conductor_(aria_sotto_vocce=',aria_sotto_vocce,')')
+		'aria:::conductor()'
 		, file=temp_file
 	)
 	job_id = rstudioapi::jobRunScript(
@@ -81,7 +83,8 @@ compose = function(
 
 	#write sampling_info
 	sampling_info = list(
-		mod_name = mod_name
+		aria_sotto_vocce = aria_sotto_vocce
+		, mod_name = mod_name
 		, code_path = code_path
 		, out_path = out_path
 		, num_chains = num_chains

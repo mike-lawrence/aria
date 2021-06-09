@@ -11,8 +11,10 @@ LazyData: true
 BugReports: https://github.com/mike-lawrence/aria/issues
 SystemRequirements: CmdStan (https://mc-stan.org/users/interfaces/cmdstan)
 Imports: 
+	beepr, 
     cmdstanr, 
     crayon,
+    data.table,
     digest,
     fs,
     processx,

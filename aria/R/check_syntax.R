@@ -1,7 +1,5 @@
-check_syntax_ = function(code_path){
-
-	#get some paths, create aria
-	code_file = fs::path_file(code_path)
+check_syntax = function(aria_args){
+	code_file = fs::path_file(aria_args$code_path)
 	mod_name = fs::path_ext_remove(code_file)
 
 	stanc_syntax_check_run = processx::run(
@@ -14,20 +12,32 @@ check_syntax_ = function(code_path){
 			, '--name', mod_name
 			,'--o', tempfile()
 		)
-		, wd = fs::path_dir(code_path)
+		, wd = fs::path_dir(aria_args$code_path)
 		, error_on_status = F
 	)
-	syntax_check_passed = !((stanc_syntax_check_run$stdout!='')|(stanc_syntax_check_run$stderr!=''))
+	stderr = stanc_syntax_check_run$stderr
+	if((stderr!='')&(!is.null(aria_args$syntax_ignore))){
+		stderr_lines = stringr::str_split(stderr,'\n')
+		for(line_num in 1:length(stderr_lines)){
+			for(ignore_string in aria_args$syntax_ignore){
+				if(stringr::str_detect(stderr_lines[line_num],ignore_string)){
+					stderr_lines[line_num] = NULL
+				}
+			}
+		}
+		stderr = paste(stderr_lines,collapse='\n')
+	}
+	syntax_check_passed = !((stderr!='')|(stanc_syntax_check_run$stdout!=''))
 	if(!syntax_check_passed){
 		if(!getOption('aria_sotto_vocce')){
 			beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
 		}
 		stanc_syntax_check_run$stdout = stringr::str_remove_all(stanc_syntax_check_run$stdout,stringr::fixed('./'))
 		stanc_syntax_check_run$stdout = stringr::str_replace_all(stanc_syntax_check_run$stdout, 'Info: ', '\nInfo:\n')
-		cat(crayon::blue(stanc_syntax_check_run$stdout),'\n\n',sep='')
-		cat(crayon::red(stanc_syntax_check_run$stderr),'\n',sep='')
+		cat(aria:::blue(stanc_syntax_check_run$stdout),'\n\n',sep='')
+		cat(aria:::red(stanc_syntax_check_run$stderr),'\n',sep='')
 	}else{
-		cat(crayon::blue('  ✓ Syntax check passed\n'))
+		cat(aria:::blue('  ✓ Syntax check passed\n'))
 	}
 	if(sys.parent()==0){ #function is being called from the global env
 		return(invisible(NULL))

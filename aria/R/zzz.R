@@ -15,3 +15,14 @@ rstan_message_necessary = FALSE
 	options('aria_sotto_vocce' = FALSE)
 	return(invisible(NULL))
 }
+
+#hack until crayon is fixed
+red = function(x){
+	paste0('\U001b[31m',x)
+}
+cyan = function(x){
+	paste0('\U001b[36m',x)
+}
+blue = function(x){
+	paste0('\U001b[34m',x)
+}
