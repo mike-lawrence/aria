@@ -72,8 +72,9 @@ A value of `0` *prevents* the default running of the debug exe (if compiled) usi
 Now that your model is compiled, you can use `aria::compose()` to sample:
 ```r
 # compose a posterior given data and model
-#   Note data-first & functional-programming-oriented design
-#   Note we pass the path to the Stan code; aria will go find the exe
+#   Note:
+#     - pipe-compatible data-first arguments
+#     - we pass the path to the Stan code; aria will go find the exe
 aria::compose( 
 	data = my_data
 	, code_path = 'stan/my_mod.stan' 
