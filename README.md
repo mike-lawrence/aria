@@ -18,7 +18,7 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * Automatic check for runtime errors at the outset of sampling using a special debugging exe and the real data
 * If no runtime errors are encountered, use of a performance-tuned exe for sampling 
 * Data are cached for faster start of sampling when the same data are sampled repeatedly
-* Nicer progress indicators including estimated time remaining
+* Nicer progress indicators including estimated time remaining and parsimonious display of any important error messages. 
 
 ### Features under development
 * Progress indication including diagnostics
@@ -87,6 +87,8 @@ attributes(post)
 
 Finally, here's some code to run some diagnostics and summarize the posterior of each variable:
 ```r
+library(tidyverse)
+
 #toss warmup
 post = filter(post,!warmup)
 
