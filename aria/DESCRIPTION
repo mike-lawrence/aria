@@ -11,15 +11,26 @@ LazyData: true
 BugReports: https://github.com/mike-lawrence/aria/issues
 SystemRequirements: CmdStan (https://mc-stan.org/users/interfaces/cmdstan)
 Imports: 
-	beepr, 
-    cmdstanr, 
-    crayon,
-    data.table,
-    digest,
-    fs,
-    processx,
-	rstudioapi,
-	rstan,
-    stringr,
-    qs
+	base
+	, beepr
+	, cmdstanr
+	, crayon
+	, data.table
+	, digest
+	, dplyr
+	, fs
+	, jsonlite
+	, parallel
+	, processx
+	, ps
+	, purrr
+	, qs
+	, R6
+	, rstan
+	, rstudioapi
+	, stringi
+	, stringr
+	, tibble
+	, tidyr
+	, utils
 RoxygenNote: 7.1.1
