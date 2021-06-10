@@ -44,6 +44,9 @@ class_output_samples = R6::R6Class(
 			if(is.null(from_fread)){
 				return(invisible(self))
 			}
+			if(nrow(from_fread)==0){
+				return(invisible(self))
+			}
 			# start a pipeline
 			(
 				from_fread
