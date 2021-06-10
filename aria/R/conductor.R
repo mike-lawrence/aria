@@ -1,7 +1,7 @@
 #' @importFrom magrittr "%>%"
 #' @importFrom magrittr "%<>%"
 
-conductor_ = function(){
+conductor = function(){
 	Sys.sleep(1) #to give sample() time to save sampling_info
 
 	sampling_info_file = fs::path('aria','sampling','info',ext='qs')

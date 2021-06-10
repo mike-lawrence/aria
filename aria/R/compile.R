@@ -1,4 +1,4 @@
-compile_ = function(aria_args){
+compile = function(aria_args){
 
 	#get some paths, create aria
 	code_file = fs::path_file(aria_args$code_path)
