@@ -33,6 +33,7 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * `aria::generate_quantities()`, which extracts the quantities that would have been computed/saved by the code as written but moved/removed from the performance exe, puts them all in the generated quantities, compiles and runs with just the post-warmup (and possibly thinned) samples. 
 
 ### Glaring omissions
+* broken when project has spaces anywhere in absolute path
 * cross-platform support; `aria` currently *should* run on unix-like systems (Linux, MacOS, WSL) but certainly won't work on Windows yet. 
 * handle within-chain parallelizing compile arguments; this *should* be easy, I just never use these, being on a meagre 4-core myself 
 * tests; 😬
