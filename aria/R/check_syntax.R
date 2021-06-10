@@ -17,15 +17,20 @@ check_syntax = function(aria_args){
 	)
 	stderr = stanc_syntax_check_run$stderr
 	if((stderr!='')&(!is.null(aria_args$syntax_ignore))){
-		stderr_lines = stringr::str_split(stderr,'\n')
-		for(line_num in 1:length(stderr_lines)){
+		stderr_lines = stringr::str_split(stderr,'\n')[[1]]
+		stderr_vec = NULL
+		for(line in stderr_lines){
+			toss = FALSE
 			for(ignore_string in aria_args$syntax_ignore){
-				if(stringr::str_detect(stderr_lines[line_num],ignore_string)){
-					stderr_lines[line_num] = NULL
+				if(stringr::str_detect(line,ignore_string)){
+					toss = TRUE
 				}
 			}
+			if(!toss){
+				stderr_vec = c(stderr_vec,line)
+			}
 		}
-		stderr = paste(stderr_lines,collapse='\n')
+		stderr = paste(stderr_vec,collapse='\n')
 	}
 	syntax_check_passed = !((stderr!='')|(stanc_syntax_check_run$stdout!=''))
 	if(!syntax_check_passed){
