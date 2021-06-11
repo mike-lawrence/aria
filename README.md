@@ -118,7 +118,7 @@ post = filter(post,!warmup)
 	%>% summarise(
 		max_treedepth = max(treedepth__)
 		, num_divergent = sum(divergent__)
-		, rebfmi = var(energy__)/(sum(diff(energy__)^2)/n())
+		, rebfmi = var(energy__)/(sum(diff(energy__)^2)/n()) #n.n. reciprocal of typical EBFMI, so bigger=bad, like rhat
 	)
 )
 
