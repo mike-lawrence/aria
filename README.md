@@ -31,6 +31,7 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * Resuming sampling of unexpectedly-terminated chains.
 * When compiling performance exe: Moving transformed parameters to model block and removing generated quantities entirely. This yields slightly less compute/write time at the cost of requiring a subsequent `aria::generate_quantities()` run.
 * `aria::generate_quantities()`, which extracts the quantities that would have been computed/saved by the code as written but moved/removed from the performance exe, puts them all in the generated quantities, compiles and runs with just the post-warmup (and possibly thinned) samples. 
+* Automated SBC by extracting user-supplied parameters (and their down-stream dependencies; requires models be written in generative order) and placing them in GQ with `_rng` functions replacing their priors. 
 
 ### Glaring omissions
 * broken when project has spaces anywhere in absolute path
