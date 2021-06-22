@@ -31,6 +31,7 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * Resuming sampling of unexpectedly-terminated chains.
 * When compiling performance exe: Moving transformed parameters to model block and removing generated quantities entirely. This yields slightly less compute/write time at the cost of requiring a subsequent `aria::generate_quantities()` run.
 * `aria::generate_quantities()`, which extracts the quantities that would have been computed/saved by the code as written but moved/removed from the performance exe, puts them all in the generated quantities, compiles and runs with just the post-warmup (and possibly thinned) samples. 
+* Automated SBC by extracting user-supplied parameters (and their down-stream dependencies; requires models be written in generative order) and placing them in GQ with `_rng` functions replacing their priors. 
 
 ### Glaring omissions
 * broken when project has spaces anywhere in absolute path
@@ -118,7 +119,7 @@ post = filter(post,!warmup)
 	%>% summarise(
 		max_treedepth = max(treedepth__)
 		, num_divergent = sum(divergent__)
-		, rebfmi = var(energy__)/(sum(diff(energy__)^2)/n())
+		, rebfmi = var(energy__)/(sum(diff(energy__)^2)/n()) #n.n. reciprocal of typical EBFMI, so bigger=bad, like rhat
 	)
 )
 
@@ -135,7 +136,7 @@ post = filter(post,!warmup)
 		rhat = posterior::rhat(matrix(value,ncol=length(unique(chain))))
 		, ess_bulk = posterior::ess_bulk(matrix(value,ncol=length(unique(chain))))
 		, ess_tail = posterior::ess_tail(matrix(value,ncol=length(unique(chain))))
-		, as_tibble(t(posterior::quantile2(value,c(.1,.25,.5,.75,.9))))
+		, as_tibble(t(posterior::quantile2(value,c(.025,.25,.5,.75,.975))))
 		, .groups = 'drop'
 	)
 ) ->
@@ -148,4 +149,60 @@ post = filter(post,!warmup)
 	%>% summary()
 )
 
+```
+
+And here's a nice diagnostics-and-quantiles viz that is unrelated to this package but I like and wanted to share (code below):
+![image](https://user-images.githubusercontent.com/150781/121684614-4c103300-ca95-11eb-932d-3c74ae5b6502.png)
+
+```r
+(
+	fit_summary
+	%>% filter(str_starts(variable,fixed('z_m.')))
+	%>% ggplot()
+	+ geom_hline(yintercept = 0)
+	+ geom_linerange(
+		mapping = aes(
+			x = variable
+			, ymin = q2.5
+			, ymax = q97.5
+			, colour = ess_tail
+		)
+	)
+	+ geom_linerange(
+		mapping = aes(
+			x = variable
+			, ymin = q25
+			, ymax = q75
+			, colour = ess_bulk
+		)
+		, size = 3
+	)
+	+ geom_point(
+		mapping = aes(
+			x = variable
+			, y = q50
+			, fill = rhat
+		)
+		, shape = 21
+		, size = 2
+	)
+	+ coord_flip()
+	+ scale_color_gradient(
+		high = 'white'
+		, low = scales::muted('red')
+	)
+	+ scale_fill_gradient(
+		low = 'white'
+		, high = scales::muted('red')
+	)
+	+ labs(
+		y = 'Mean'
+		, colour = 'ESS'
+		, fill = 'Rhat'
+	)
+	+ theme(
+		panel.background = element_rect(fill='grey50')
+		, panel.grid = element_blank()
+	)
+)
 ```
