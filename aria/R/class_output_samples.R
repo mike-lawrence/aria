@@ -7,6 +7,41 @@ class_output_samples = R6::R6Class(
 			, metric = NULL
 		)
 		, sampling_start_time = NULL
+		, header_nlines = NULL
+		, adapt_nlines = 0
+		, num_warmup = NULL
+		, col_names = NULL
+		, col_classes = NULL
+		, initialize = function(name,chain_name,num_warmup,samples_col_names){
+			self$name = name
+			self$chain_name = chain_name
+			self$num_warmup = num_warmup
+			self$col_names = samples_col_names
+			self$file = fs::path('aria','sampling',chain_name,name)
+			return(invisible(self))
+		}
+		, ingest_header = function(){
+			(
+				paste0("grep '^[#l]' '",self$file,"'")
+				%>% system(intern=T)
+				%>% strsplit('\n')
+				%>% unlist()
+			) -> header
+			header_nlines = which(stringr::str_starts(header,'lp'))
+			if(length(header_nlines)==0){
+				return(invisible(self))
+			}
+			self$header_nlines = header_nlines
+			found_col_names = unlist(strsplit(header[self$header_nlines],','))
+			if(!all(self$col_names==found_col_names)){
+				stop('Samples header mismatch.')
+			}
+			self$col_classes = list(
+				integer = 4:6
+				, numeric = c(1:3,7:length(self$col_names))
+			)
+			return(invisible(self))
+		}
 		, ingest = function(){
 			if(!fs::file_exists(self$file)){
 				return(invisible(self))
@@ -21,23 +56,26 @@ class_output_samples = R6::R6Class(
 			if(file_size_now==old_file_size){
 				return(invisible(self))
 			}
-			tmp = 1:length(self$sampling_info$samples_header)
+			#read the header if not done already
+			if(is.null(self$header_n_lines)){
+				self$ingest_header()
+			}
 			options(warn=-1)
 			from_fread = NULL
 			try(
 				from_fread <- data.table::fread(
-					cmd = paste0("grep -v '^[#l]' --color=never '", self$file, "'")
+					cmd = paste0(
+						"tail -n+"
+						, self$header_nlines + self$adapt_nlines + nrow(self$parsed) + 1
+						, " '"
+						, self$file
+						, "' | grep -v '^[#]' --color=never"
+					)
 					, data.table = FALSE
 					, sep = ','
-					# , colClasses = 'double'
 					, header = F
-					, col.names = self$sampling_info$samples_header
-					, colClasses = list(
-						numeric = tmp[!(tmp%in%(4:6))]
-						, integer = 4:6
-						# , logical = 6
-					)
-					, skip = nrow(self$parsed)
+					, col.names = self$col_names
+					, colClasses = self$col_classes
 				)
 				, silent = T
 			)
@@ -54,46 +92,13 @@ class_output_samples = R6::R6Class(
 				%>% dplyr::mutate(
 					iteration = (1:dplyr::n()) + nrow(self$parsed)
 				)
-				# #read the contents with grep (yields vector of lines)
-				# system2(
-				# 	command = "grep"
-				# 	, args = c(
-				# 		"'^[#l]'"
-				# 		, "-v"
-				# 		, "--color=never"
-				# 		, self$file
-				# 	)
-				# 	, stdout = TRUE
-				# )
-				# #toss the lines we have already
-				# %>% {function(x){
-				# 	x[(nrow(self$parsed)+1):length(x)]
-				# }}()
-				# #split to character matrix
-				# %>% stringr::str_split(
-				# 	stringr::fixed(',')
-				# 	, simplify = T
-				# )
-				# #numerify
-				# %>% {function(x){
-				# 	matrix(as.numeric(x),nrow=nrow(x))
-				# }}()
-				# # add dimnames
-				# %>% {function(x){
-				# 	dimnames(x) = list()
-				# 	dimnames(x)[[1]] = nrow(self$parsed) + (1:nrow(x))
-				# 	dimnames(x)[[2]] = self$sampling_info$samples_header
-				# 	return(x)
-				# }}()
-				# # convert to tibble
-				# %>% tibble::as_tibble(rownames='iteration')
 				#toss any rows with NA (means the csv writer was still writing that line)
 				%>% tidyr::drop_na()
 				#add columns
 				%>% dplyr::mutate(
 					chain = as.numeric(self$chain_name)
 					, iteration = as.numeric(iteration)
-					, warmup = iteration<=self$sampling_info$num_warmup
+					, warmup = iteration<=self$num_warmup
 					, treedepth__ = as.integer(treedepth__)
 					, n_leapfrog__ = as.integer(n_leapfrog__)
 					, divergent__ = as.logical(divergent__)
@@ -110,23 +115,40 @@ class_output_samples = R6::R6Class(
 			#check if adaptation info is unread
 			if(is.null(self$sampling_start_time)){
 				#check if adaptation info is available
-				if(nrow(self$parsed)>self$sampling_info$num_warmup){
+				if(nrow(self$parsed)>self$num_warmup){
 					self$sampling_start_time = Sys.time()
-					#read the contents with grep
-					comments = system2(
-						command = "grep"
-						, args = c(	"^[#]" , "--color=never" , self$file )
-						, stdout = TRUE
+					#this section is fragile to changes in cmdstan csv design
+					tail_grep_cmd = paste0(
+						"tail -n+"
+						, self$header_nlines + self$num_warmup + 1
+						, " '"
+						, self$file
+						, "' | grep '^[#]' --color=never"
+						, collapse = ''
 					)
-					comments = comments[which(comments=='# Adaptation terminated'):length(comments)]
-					step_size_line = comments[2]
-					self$adapt_info$step_size = substr(step_size_line,15,nchar(step_size_line))
+					#read the contents with grep
 					(
-						comments
-						%>% stringr::str_remove(stringr::fixed('# '))
+						system(
+							tail_grep_cmd
+							, intern = T
+						)
+						%>% strsplit('\n')
+						%>% unlist()
+						%>% stringr::str_remove('#')
+						# toss lines consisting of just a space or starting with a double space
 						%>% {function(x){
-							x[stringr::str_starts(x,'[0-9[-]]')]
+							x = x[x!=' '] # just before the final timing line
+							x = x[substr(x,1,2)!='  '] #final timing lines
+							return(x)
 						}}()
+						%>% stringr::str_trim()
+					) -> adapt_info_lines
+					self$adapt_nlines = length(adapt_info_lines)
+					step_size_line_num = which(stringr::str_detect(adapt_info_lines,'Step size = '))
+					#this substr
+					self$adapt_info$step_size = as.numeric(stringr::str_remove(adapt_info_lines[step_size_line_num],'Step size = '))
+					(
+						adapt_info_lines[(step_size_line_num+2):self$adapt_nlines]
 						#split to character matrix
 						%>% stringr::str_split(
 							stringr::fixed(',')

@@ -7,10 +7,9 @@ class_output = R6::R6Class(
 		, file = NULL
 		, last_file_size = 0
 		, parsed = tibble::tibble()
-		, initialize = function(name,chain_name,sampling_info){
+		, initialize = function(name,chain_name){
 			self$name = name
 			self$chain_name = chain_name
-			self$sampling_info = sampling_info
 			self$file = fs::path('aria','sampling',chain_name,name)
 			return(invisible(self))
 		}

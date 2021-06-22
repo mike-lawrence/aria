@@ -27,7 +27,7 @@ conductor = function(){
 		stop(aria:::red('Compiled exe not found, run `aria:::compile("',code_path,'")` first.'))
 	}else{
 		if(!fs::file_exists(debug_exe_file)){
-			cat(aria:::cyan('No debug exe found, using performance exe for debug check. Line numbers in any resulting errors may not match model file.'))
+			cat(aria:::cyan('No debug exe found, using performance exe for debug check. Line numbers in any resulting errors may not match model file.\n'))
 			debug_run_file = fast_exe_file
 		}else{
 			debug_run_file = debug_exe_file
@@ -38,7 +38,7 @@ conductor = function(){
 	if(length(debug_out)==1){
 		return(invisible(NULL))
 	}else{
-		sampling_info$samples_header = c(
+		sampling_info$samples_col_names = c(
 			debug_out[1:2]
 			, 'stepsize__','treedepth__','n_leapfrog__','divergent__','energy__'
 			, debug_out[3:length(debug_out)]
