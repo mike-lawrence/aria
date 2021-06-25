@@ -13,7 +13,7 @@ show_exe_args = function(code_path){
 
 	code_file = fs::path_file(code_path)
 	mod_name = fs::path_ext_remove(code_file)
-	fast_exe_file = fs::path('aria','exes',mod_name,'fast')
+	fast_exe_file = fs::path('aria','exes',mod_name,'stan_exe')
 
 	#look for exe
 	if(!fs::file_exists(fast_exe_file)){

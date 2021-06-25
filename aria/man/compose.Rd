@@ -8,6 +8,7 @@ compose(
   data,
   code_path,
   out_path,
+  overwrite = FALSE,
   num_chains = NULL,
   chain_num_start = 1,
   exe_args_list = NULL

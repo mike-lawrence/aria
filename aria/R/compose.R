@@ -28,6 +28,7 @@ compose = function(
 	data
 	, code_path
 	, out_path
+	, overwrite = FALSE
 	, num_chains = NULL
 	, chain_num_start = 1
 	, exe_args_list = NULL
@@ -47,7 +48,14 @@ compose = function(
 
 	#ensure we can write the outputs
 	if(!fs::dir_exists(fs::path_dir(out_path))){
-		stop(aria:::red('The output directory "',fs::path_dir(out_path),'" does not exist.',sep=''))
+		stop(aria:::red(paste0('The output directory "',fs::path_dir(out_path),'" does not exist.')))
+	}
+	if(fs::file_exists(out_path)){
+		if(!overwrite){
+			stop(aria:::red(paste0('The file "',out_path,'" already exists. If you wish to overwrite, set `overwrite=TRUE`')))
+		}else{
+			fs::file_delete(out_path)
+		}
 	}
 
 	# ensure dirs exist
@@ -72,13 +80,13 @@ compose = function(
 	temp_file = tempfile()
 	write(
 		'aria:::conductor()'
-		, file=temp_file
+		, file = temp_file
 	)
 	job_id = rstudioapi::jobRunScript(
 		path = temp_file
 		, name = paste('Composing',mod_name)
 		, workingDir = getwd()
-		, exportEnv = 'R_GlobalEnv'
+		# , exportEnv = 'R_GlobalEnv'
 	)
 
 	#write sampling_info
