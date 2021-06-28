@@ -10,7 +10,7 @@ coda(out_path)
 \item{out_path}{Character string describing the path to a file where the final sampling output was saved.}
 }
 \value{
-a
+An instance of the "composition" class, with methods `nc_info()` and `draws()`.
 }
 \description{
 Collect output from aria
@@ -18,6 +18,8 @@ Collect output from aria
 \examples{
 \dontrun{
 post = aria::coda('sampled/sampled.qs')
-post$print_info()
+post$nc_info()
+post$draws(variables='means') #draws_rvars format
+post$draws(groups='generated_quantities') #can specify groups instead
 }
 }
