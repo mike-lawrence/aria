@@ -4,12 +4,10 @@
 \alias{clean}
 \title{Delete temporary files associated with a specific model}
 \usage{
-clean(code_path, keep_exe = F)
+clean(code_path)
 }
 \arguments{
 \item{code_path}{Character string describing the path to the Stan code.}
-
-\item{keep_exe}{Logical value (default:FALSE) indicating whether to keep the exe folder.}
 }
 \value{
 Returns NULL invisibly
