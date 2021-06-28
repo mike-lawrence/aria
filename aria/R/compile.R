@@ -44,15 +44,20 @@ compile = function(aria_args){
 	}
 	if(aria_args$compile_debug){
 		cat(aria:::blue('  Compiling debugging exe...\U00D'))
-		exe_file_for_compile = fs::path_abs(fs::path_ext_remove(aria_args$code_path)) #must be absolute
+		tmpfile = fs::file_copy(
+			aria_args$code_path
+			, new_path = fs::file_temp(ext='stan')
+		)
+		exe_file_for_compile = fs::path_ext_remove(tmpfile)
 		debug_make_run = processx::run(
 			command = cmdstanr:::make_cmd()
 			, args = c(
 				paste0('-j',parallel::detectCores())
 				, exe_file_for_compile
+				# , stringr::str_replace(exe_file_for_compile,stringr::fixed(' '),stringr::fixed('\\ '))
 				, paste(
 					'STANCFLAGS +='
-					, '--include-paths', fs::path_dir(exe_file_for_compile)
+					, '--include-paths', dQuote(fs::path_abs(fs::path_dir(aria_args$code_path)),F)
 					, '--name', mod_name
 				)
 			)
@@ -77,7 +82,7 @@ compile = function(aria_args){
 		}
 		#move exe & delete the hpp
 		fs::file_move(exe_file_for_compile,debug_exe_file)
-		fs::file_delete(fs::path_ext_set(aria_args$code_path,'hpp'))
+		fs::file_delete(fs::path_ext_set(exe_file_for_compile,'hpp'))
 		# show success
 		cat(aria:::blue('  ✓ Compiled debugging exe  \n'))
 	}
@@ -115,7 +120,12 @@ compile = function(aria_args){
 
 	#compile fast exe
 	cat(aria:::blue('  Compiling performance exe ...\U00D'))
-	exe_file_for_compile = fs::path_abs(fs::path_ext_remove(aria_args$code_path)) #must be absolute
+	tmpfile = fs::file_copy(
+		aria_args$code_path
+		, new_path = fs::file_temp(ext='stan')
+	)
+	exe_file_for_compile = fs::path_ext_remove(tmpfile)
+	# exe_file_for_compile = fs::path_abs(fs::path_ext_remove(aria_args$code_path)) #must be absolute
 	make_run = processx::run(
 		command = cmdstanr:::make_cmd()
 		, args = c(
@@ -127,7 +137,7 @@ compile = function(aria_args){
 			, 'STAN_CPP_OPTIMS=true'
 			, paste(
 				'STANCFLAGS +='
-				, '--include-paths', fs::path_dir(exe_file_for_compile)
+				, '--include-paths', dQuote(fs::path_abs(fs::path_dir(aria_args$code_path)),F)
 				, '--name', mod_name
 			)
 		)
@@ -154,7 +164,7 @@ compile = function(aria_args){
 
 	#move exe & delete the hpp
 	fs::file_move(exe_file_for_compile,fast_exe_file)
-	fs::file_delete(fs::path_ext_set(aria_args$code_path,'hpp'))
+	fs::file_delete(fs::path_ext_set(exe_file_for_compile,'hpp'))
 
 	#get model info
 	info_run = processx::run(
