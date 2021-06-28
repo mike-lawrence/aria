@@ -34,7 +34,6 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * Automated SBC by extracting user-supplied parameters (and their down-stream dependencies; requires models be written in generative order) and placing them in GQ with `_rng` functions replacing their priors. 
 
 ### Glaring omissions
-* broken when project has spaces anywhere in absolute path
 * cross-platform support; `aria` currently *should* run on unix-like systems (Linux, MacOS, WSL) but certainly won't work on Windows yet. 
 * handle within-chain parallelizing compile arguments; this *should* be easy, I just never use these, being on a meagre 4-core myself 
 * tests; 😬
