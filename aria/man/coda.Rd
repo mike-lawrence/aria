@@ -17,7 +17,7 @@ Collect output from aria
 }
 \examples{
 \dontrun{
-post = aria::coda('sampled/sampled.qs')
+post = aria::coda('sampled/sampled.nc')
 post$nc_info()
 post$draws(variables='means') #draws_rvars format
 post$draws(groups='generated_quantities') #can specify groups instead

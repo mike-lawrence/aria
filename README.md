@@ -102,52 +102,39 @@ post = aria::coda( out_path = 'sampled/my_data_my_mod_out.nc')
 ```
 Which initializes an R6 object with pointers to the pertinent internals of the NetCDF4 file. Ultimately I'll be working toward making said internals compliant with the [InferenceData spec](https://arviz-devs.github.io/arviz/getting_started/XarrayforArviZ.html), but for now you can view what's there via:
 ```R
-post$print_info()
+post$nc_info()
 ```
-And get rvar representations of a given variable via:
+And get [rvar](https://mc-stan.org/posterior/articles/rvar.html) representations via:
 ```R
-post$as_rvar('mu') #extracts variable `mu`; BUT BROKEN FOR ARRAYS WITH MORE THAN ONE DIMENSION
-#can be input to posterior::summarise_draws()
-post$as_rvar('mu') %>% posterior::summarise_draws()
+post$draws() #all variables
+post$draws('mu') #just mu
+post$draws(variables=c('mu','sigma')) #mu & sigma
+post$draws(groups='parameters') #just the parameters (i.e. no TP or GQ)
+
+#plays-well with posterior:
+post$draws('mu') %>% posterior::summarise_draws()
 ```
-
-
-OLD-FORMAT README CONTENT BELOW, DOESN'T WORK WITH NEW NETCDF4 FORMAT
 Finally, here's some code to run some diagnostics and summarize the posterior of each variable:
 ```r
 library(tidyverse)
 
-#toss warmup
-post = filter(post,!warmup)
 
 # Check treedepth, divergences, & rebfmi
 (
-	post
-	%>% filter(!warmup)
-	%>% group_by(chain)
+	post$draws(group='sample_stats')
+	%>% posterior::as_draws_df()
+	%>% group_by(.chain)
 	%>% summarise(
-		max_treedepth = max(treedepth__)
-		, num_divergent = sum(divergent__)
-		, rebfmi = var(energy__)/(sum(diff(energy__)^2)/n()) #n.n. reciprocal of typical EBFMI, so bigger=bad, like rhat
+		max_treedepth = max(treedepth)
+		, num_divergent = sum(divergent)
+		, rebfmi = var(energy)/(sum(diff(energy)^2)/n()) #n.b. reciprocal of typical EBFMI, so bigger=bad, like rhat
 	)
 )
 
 # gather summary for core parameters (inc. rhat & ess)
 (
-	post
-	%>% select(-(warmup:energy__))
-	%>% pivot_longer(
-		cols = c(-chain,-iteration)
-		, names_to = 'variable'
-	)
-	%>% group_by(variable)
-	%>% summarise(
-		rhat = posterior::rhat(matrix(value,ncol=length(unique(chain))))
-		, ess_bulk = posterior::ess_bulk(matrix(value,ncol=length(unique(chain))))
-		, ess_tail = posterior::ess_tail(matrix(value,ncol=length(unique(chain))))
-		, as_tibble(t(posterior::quantile2(value,c(.025,.25,.5,.75,.975))))
-		, .groups = 'drop'
-	)
+	post$draws(groups='parameters')
+	%>% posterior::summarise_draws()
 ) ->
 	fit_summary
 
