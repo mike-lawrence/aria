@@ -10,13 +10,14 @@ coda(out_path)
 \item{out_path}{Character string describing the path to a file where the final sampling output was saved.}
 }
 \value{
-a tibble with samples, plus attributes: `stdout`, `stderr`, `adapt_info`, & `sampling_info`
+a
 }
 \description{
 Collect output from aria
 }
 \examples{
 \dontrun{
-p = aria::coda('sampled/sampled.qs')
+post = aria::coda('sampled/sampled.qs')
+post$print_info()
 }
 }

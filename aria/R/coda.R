@@ -2,13 +2,14 @@
 #'
 #' @param out_path Character string describing the path to a file where the final sampling output was saved.
 
-#' @return a tibble with samples, plus attributes: `stdout`, `stderr`, `adapt_info`, & `sampling_info`
+#' @return a
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' p = aria::coda('sampled/sampled.qs')
+#' post = aria::coda('sampled/sampled.qs')
+#' post$print_info()
 #' }
 coda = function(out_path){
-	qs::qread(out_path)
+	return(class_score$new(out_path))
 }

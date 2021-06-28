@@ -6,7 +6,7 @@
 #' @param num_chains Integer value indicating the number of chains. If NULL (the default), \code{\link{parallel::detectCores()}/2} will be used. If negative, \code{\link{parallel::detectCores()}/2-num_cores} will be used. Otherwise, \code{num_cores} will be used.
 #' @param chain_num_start Integer value (default: 1) indicating An offset for the numeric chain identifiers. Useful if you have already run a set of chains, collected the results, and want to run more chains.
 #' @param exe_args_list list() object with a named hierarchical structure matching what exe expects in terms of runtime arguments (viewable via \code{\link{aria::exe_args}}). If NULL (the default), aria will select some defaults.
-#'
+
 #' @return NULL (invisibly); Side effects: \code{num_chains} sampling processes are launched in the background with progress monitored by an RStudio Job.
 #' @export
 #'
@@ -28,6 +28,7 @@ compose = function(
 	data
 	, code_path
 	, out_path
+	, overwrite = FALSE
 	, num_chains = NULL
 	, chain_num_start = 1
 	, exe_args_list = NULL
@@ -47,7 +48,14 @@ compose = function(
 
 	#ensure we can write the outputs
 	if(!fs::dir_exists(fs::path_dir(out_path))){
-		stop(aria:::red('The output directory "',fs::path_dir(out_path),'" does not exist.',sep=''))
+		stop(aria:::red(paste0('The output directory "',fs::path_dir(out_path),'" does not exist.')))
+	}
+	if(fs::file_exists(out_path)){
+		if(!overwrite){
+			stop(aria:::red(paste0('The file "',out_path,'" already exists. If you wish to overwrite, set `overwrite=TRUE`')))
+		}else{
+			fs::file_delete(out_path)
+		}
 	}
 
 	# ensure dirs exist
@@ -72,13 +80,13 @@ compose = function(
 	temp_file = tempfile()
 	write(
 		'aria:::conductor()'
-		, file=temp_file
+		, file = temp_file
 	)
 	job_id = rstudioapi::jobRunScript(
 		path = temp_file
 		, name = paste('Composing',mod_name)
 		, workingDir = getwd()
-		, exportEnv = 'R_GlobalEnv'
+		# , exportEnv = 'R_GlobalEnv'
 	)
 
 	#write sampling_info
@@ -98,7 +106,6 @@ compose = function(
 		, fs::path(run_dir,'info',ext='qs')
 		, preset = 'fast'
 	)
-
 	return(invisible(NULL))
 }
 
