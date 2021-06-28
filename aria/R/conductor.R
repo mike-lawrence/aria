@@ -8,6 +8,7 @@ conductor = function(){
 		Sys.sleep(.001)
 	}
 	sampling_info = qs::qread(sampling_info_file)
+	# stop()
 	options('aria_sotto_vocce'=sampling_info$aria_sotto_vocce)
 	debug_exe_file = fs::path('aria','exes',sampling_info$mod_name,'stan_debug_exe')
 	fast_exe_file = fs::path('aria','exes',sampling_info$mod_name,'stan_exe')
@@ -53,9 +54,9 @@ conductor = function(){
 		#TODO: add_run_arg_if_missing doesn't support delving more than 1 layer deep
 		%>% aria:::add_run_arg_if_missing('sample','save_warmup',1)
 		%>% aria:::add_run_arg_if_missing('data','file',sampling_info$data_file)
-		%>% aria:::add_run_arg_if_missing('random','seed',base::sample(.Machine$integer.max, 1))
 		%>% aria:::add_run_arg_if_missing('output','refresh',0)
 		%>% aria:::add_run_arg_if_missing('output','sig_figs',18)
+		%>% aria:::add_run_arg_if_missing('sample','save_warmup',1)
 		# %>% add_run_arg_if_missing('output','diagnostic_file','diagnostic.csv')
 	) -> sampling_info$exe_args_list
 	#others:
@@ -68,7 +69,7 @@ conductor = function(){
 	sampling_info$mod_info = qs::qread(mod_info_file)
 
 	#initialize the nc4 file ----
-	sampling_info %<>% aria:::initialize_nc() #I really should just make sampling_info class, eh?
+	sampling_info %<>% aria:::initialize_nc()
 
 	#Start the chains ----
 	active_chains = list()
@@ -76,6 +77,7 @@ conductor = function(){
 		sampling_info$chain_num_start:(sampling_info$chain_num_start-1+sampling_info$num_chains)
 	)
 	for(this_chain_name in chain_name_sequence){
+
 		active_chains[[this_chain_name]] = aria:::class_chain$new(
 			name = this_chain_name
 			, sampling_info = sampling_info
@@ -104,9 +106,6 @@ conductor = function(){
 			this_chain_still_active = active_chains[[this_chain_name]]$process$is_alive()
 			# ingest, forcing if no longer active
 			active_chains[[this_chain_name]]$ingest(force=!this_chain_still_active)
-			if(nrow(active_chains[[this_chain_name]]$samples$parsed)==sampling_info$num_total){
-				this_chain_still_active = FALSE
-			}
 			if(!this_chain_still_active){
 				active_chains[[this_chain_name]]$finalize()
 				inactive_chains[[this_chain_name]] = active_chains[[this_chain_name]]
@@ -114,28 +113,85 @@ conductor = function(){
 			}
 		}
 		#Update progress ----
-		#update job status
-		rstudioapi::jobSetStatus(
-			sampling_info$job_id
-			, paste0(
-				length(active_chains)
-				, ' chains running, '
-				, length(inactive_chains)
-				, ' chains completed'
-			)
-		)
-		# job output:
+
 		#first the top bar:
 		# aria:::cat_top_bar(sampling_info)
 		aria:::cat_top_bar(sampling_info,last_loop_start_time)
 
 		#loop over chains in sequence to cat their progress:
+		nlines = list()
 		for(this_chain_name in chain_name_sequence){
 			if(this_chain_name %in% names(active_chains)){
 				active_chains[[this_chain_name]]$cat_progress()
+				nlines[[this_chain_name]] = active_chains[[this_chain_name]]$samples$parsed_nlines
 			}else{
 				inactive_chains[[this_chain_name]]$cat_progress()
+				nlines[[this_chain_name]] = inactive_chains[[this_chain_name]]$samples$parsed_nlines
 			}
+		}
+		#update job status
+		if(!is.null(sampling_info$job_id)){
+			rstudioapi::jobSetStatus(
+				sampling_info$job_id
+				, paste0(
+					round(min(unlist(nlines))/sampling_info$num_total*100)
+					, '%'
+				)
+			)
+		}
+		diag_start_sample = 1
+		diag_sample_count = min(unlist(nlines))
+		if(diag_sample_count>sampling_info$num_warmup){
+			diag_start_sample = sampling_info$num_warmup + 1
+			diag_sample_count = diag_sample_count - sampling_info$num_warmup
+		}
+
+		if(diag_sample_count>2){
+			(
+				RNetCDF::var.get.nc(
+					ncfile = sampling_info$nc_groups$sample_stats
+					, variable = 'lp'
+					, start = c(1,1)
+					, count = c(diag_sample_count,sampling_info$num_chains)
+				)
+				%>% posterior::rhat()
+			) -> rhat_lp
+			cat(' \nr\U0302:',format(round(1.00,2),nsmall=2),'\n \n')
+			(
+				RNetCDF::var.get.nc(
+					ncfile = sampling_info$nc_groups$sample_stats
+					, variable = 'treedepth'
+					, start = c(1,1)
+					, count = c(diag_sample_count,sampling_info$num_chains)
+				)
+				%>% {function(x){
+					dimnames(x) = list()
+					dimnames(x)[[1]] = paste('V',1:nrow(x),sep='')
+					dimnames(x)[[2]] = chain_name_sequence
+					return(x)
+				}}()
+				%>% tibble::as_tibble(rownames = 'draw')
+				%>% tidyr::pivot_longer(-draw,names_to='chain')
+				%>% dplyr::group_by(chain,value)
+				%>% dplyr::summarise(count=dplyr::n(),.groups='drop_last')
+				%>% dplyr::mutate(
+					count = round(count/sum(count)*100)
+					, value = factor(value,levels=c(min(value):max(value)))
+				)
+				%>% dplyr::arrange(value)
+				%>% tidyr::pivot_wider(
+					names_from = value
+					, values_from = count
+					, values_fill = 0
+				)
+				%>% as.data.frame()
+				# %>% {function(x){names(x)=}}
+			) -> treedepth
+			cat('Treedepth %\n')
+			dimnames(treedepth)[[1]] = strrep(' ',1:nrow(treedepth))
+			dimnames(treedepth)[[2]][1] = ' '
+			print(treedepth)
+			cat(' \n')
 		}
 		#gather stderr messages & cat
 		(
@@ -245,9 +301,9 @@ vague_dt = function(seconds) {
 
 cat_top_bar = function(sampling_info,last_loop_start_time){
 	loop_duration_txt = stringr::str_trim(aria:::vague_dt(Sys.time() - last_loop_start_time))
-	bar_prefix_width = nchar('0: 100% [')
-	bar_suffix_width = nchar('] 99m?')
-	bar_width = getOption('width') - (bar_prefix_width+bar_suffix_width)
+	bar_prefix_width = nchar('0:[')
+	bar_suffix_width = nchar('] 100% 99m?')
+	bar_width = (getOption('width') - (bar_prefix_width+bar_suffix_width))/2
 	warmup_width = round(
 		sampling_info$num_warmup
 		/ (
@@ -263,7 +319,10 @@ cat_top_bar = function(sampling_info,last_loop_start_time){
 		, strrep(' ', bar_prefix_width-nchar(loop_duration_txt))
 		, strrep('\U2592',warmup_width)
 		, strrep('\U2593',sampling_width)
-		, strrep(' ', bar_suffix_width)
+		, strrep(' ', bar_suffix_width-4)
+		, 'eta'
+		, '\t'
+		, '1/bfmi bulk tail'
 		, '\n'
 		, sep=''
 	)

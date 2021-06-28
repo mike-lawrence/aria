@@ -7,13 +7,9 @@
 #'
 #' @examples
 #' \dontrun{
-#' p = aria::coda('sampled/sampled.qs')
+#' post = aria::coda('sampled/sampled.qs')
+#' post$print_info()
 #' }
 coda = function(out_path){
-	nc = RNetCDF::open.nc(out_path)
-	nc_groups = list()
-	for(grp_name in c('adapt_info','sample_stats','parameters','transformed_parameters','generated_quantities')){
-		nc_groups[[grp_name]] = RNetCDF::grp.inq.nc(nc,grp_name)$self
-	}
-	return(nc_groups)
+	return(class_score$new(out_path))
 }

@@ -71,8 +71,8 @@ class_output_samples = R6::R6Class(
 				, .y = names(samples)
 				, .f = function(data,csv_col_name){
 					start = c(
-						as.numeric(self$chain_name)
-						, self$parsed_nlines+1
+						self$parsed_nlines+1
+						, as.numeric(self$chain_name)
 					)
 					if(stringr::str_ends(csv_col_name,'__')){
 						grp_name = 'sample_stats'
@@ -98,7 +98,7 @@ class_output_samples = R6::R6Class(
 						%>% as.numeric()
 						%>% c(start,.)
 					) -> start
-					count = c(1,length(data),rep(1,length(start)-2))
+					count = c(length(data),1,rep(1,length(start)-2))
 					RNetCDF::var.put.nc(
 						ncfile = self$sampling_info$nc_groups[[grp_name]]
 						, variable = variable

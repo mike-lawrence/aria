@@ -17,6 +17,7 @@ Collect output from aria
 }
 \examples{
 \dontrun{
-p = aria::coda('sampled/sampled.qs')
+post = aria::coda('sampled/sampled.qs')
+post$print_info()
 }
 }

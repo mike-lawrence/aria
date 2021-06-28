@@ -32,6 +32,7 @@ class_chain = R6::R6Class(
 				, sampling_info = sampling_info
 			)
 			sampling_info$exe_args_list$output$file = self$samples$file
+			sampling_info$exe_args_list %<>% aria:::add_run_arg_if_missing('random','seed',as.numeric(self$name))
 			self$process = processx::process$new(
 				command = fs::path('.','aria','exes',sampling_info$mod_name,'stan_exe')
 				, args = c(
@@ -95,6 +96,45 @@ class_chain = R6::R6Class(
 			}
 			return(invisible(self))
 		}
+		, get_diagnostics_txt = function(){
+			txt = strrep(' ',14)
+			diag_start_sample = 1
+			diag_sample_count = self$samples$parsed_nlines
+			if(self$samples$parsed_nlines>self$sampling_info$num_warmup){
+				diag_start_sample = self$sampling_info$num_warmup + 1
+				diag_sample_count = self$samples$parsed_nlines - self$sampling_info$num_warmup
+			}
+			if(diag_sample_count>2){
+				(
+					RNetCDF::var.get.nc(
+						ncfile = self$sampling_info$nc_groups$sample_stats
+						, variable = 'energy'
+						, start = c(diag_start_sample,as.numeric(self$name))
+						, count = c(diag_sample_count,1)
+					)
+					%>% {function(x){
+						var(x)/(sum(diff(x)^2)/length(x))
+					}}()
+				) -> rbfmi
+				(
+					RNetCDF::var.get.nc(
+						ncfile = self$sampling_info$nc_groups$sample_stats
+						, variable = 'lp'
+						, start = c(diag_start_sample,as.numeric(self$name))
+						, count = c(diag_sample_count,1)
+					)
+				) -> lp
+				bulk = posterior::ess_bulk(lp)/diag_sample_count*100
+				tail = posterior::ess_tail(lp)/diag_sample_count*100
+				txt = paste(
+					format(round(rbfmi,1),width=6)
+					, format(round(bulk),width=4)
+					, format(round(tail),width=4)
+				)
+
+			}
+			return(txt)
+		}
 		, cat_progress = function(){
 			cat(self$name,':',sep='')
 			iter_done_num = self$samples$parsed_nlines
@@ -102,20 +142,23 @@ class_chain = R6::R6Class(
 				cat(' waiting\n')
 				return(invisible(self))
 			}
-			bar_width = getOption('width') - nchar('0: 100% [] 99m?')
+			bar_width = floor((getOption('width') - nchar('0:[]100% 99m?'))/2)
 			if(!is.null(self$times_from_stdout$total)){
 				cat(
-					' 100% ['
+					'['
 					, strrep('\U2588',bar_width)
-					, '] '
+					, ']100% '
 					, aria:::vague_dt(as.double(self$times_from_stdout$total[1],units='secs'))
-					,'✓\n'
+					,'✓'
+					, '\t'
+					, self$get_diagnostics_txt()
+					, '\n'
 					, sep = ''
 				)
 				return(invisible(self))
 			}
 			done_prop = iter_done_num / self$sampling_info$num_total
-			cat(' ',format(floor(100*done_prop),width=3),'% [',sep='')
+			cat('[')
 			done_width_decimal = done_prop*bar_width
 			done_width_floor = floor(done_width_decimal)
 			cat(strrep('\U2588',done_width_floor))
@@ -127,7 +170,7 @@ class_chain = R6::R6Class(
 			}else{
 				todo_width = bar_width - done_width_floor
 			}
-			cat(strrep(' ',todo_width), '] ',sep='')
+			cat(strrep(' ',todo_width), ']',format(floor(100*done_prop),width=3),'% ',sep='')
 			if(iter_done_num<=self$sampling_info$num_warmup){ #still in warmup
 				numerator = iter_done_num
 				denominator = self$sampling_info$num_total
@@ -144,6 +187,8 @@ class_chain = R6::R6Class(
 					(this_section_elapsed/numerator) * (denominator-numerator)
 				)
 				, eta_suffix
+				, '\t'
+				, self$get_diagnostics_txt()
 				, '\n'
 				, sep=''
 			)

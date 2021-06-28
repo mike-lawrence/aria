@@ -6,7 +6,7 @@
 #' @param num_chains Integer value indicating the number of chains. If NULL (the default), \code{\link{parallel::detectCores()}/2} will be used. If negative, \code{\link{parallel::detectCores()}/2-num_cores} will be used. Otherwise, \code{num_cores} will be used.
 #' @param chain_num_start Integer value (default: 1) indicating An offset for the numeric chain identifiers. Useful if you have already run a set of chains, collected the results, and want to run more chains.
 #' @param exe_args_list list() object with a named hierarchical structure matching what exe expects in terms of runtime arguments (viewable via \code{\link{aria::exe_args}}). If NULL (the default), aria will select some defaults.
-#'
+
 #' @return NULL (invisibly); Side effects: \code{num_chains} sampling processes are launched in the background with progress monitored by an RStudio Job.
 #' @export
 #'
@@ -106,7 +106,6 @@ compose = function(
 		, fs::path(run_dir,'info',ext='qs')
 		, preset = 'fast'
 	)
-
 	return(invisible(NULL))
 }
 

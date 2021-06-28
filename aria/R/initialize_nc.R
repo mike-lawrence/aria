@@ -31,6 +31,7 @@ initialize_nc = function(sampling_info){
 		, prefill = FALSE
 		#, share = TRUE #in case there are other readers
 	)
+	RNetCDF::att.put.nc(nc,'NC_GLOBAL','num_warmup','NC_USHORT',sampling_info$num_warmup)
 
 	nc_groups = list()
 	#initialize the adapt_info group
@@ -59,7 +60,7 @@ initialize_nc = function(sampling_info){
 		RNetCDF::dim.def.nc(grp,'chain',sampling_info$num_chains)
 		RNetCDF::dim.def.nc(grp,'draw',sampling_info$num_total)
 		RNetCDF::var.def.nc(grp,'chain','NC_UBYTE','chain') #num chains unlikely to exceed 2^8
-		RNetCDF::var.def.nc(grp,'draw','NC_USHORT','draw') # num draws unlikely to exceed 2^16
+		RNetCDF::var.def.nc(grp,'draw','NC_USHORT','draw') #num draws unlikely to exceed 2^16
 		if(grp_name=='sample_stats'){
 			vars = purrr::map(
 				.x = c('lp','accept_stat','stepsize','treedepth','n_leapfrog','divergent','energy')
@@ -94,7 +95,7 @@ initialize_nc = function(sampling_info){
 				, .y = names(vars)
 				, grp = grp
 				, .f = function(var_info,var_name,grp){
-					var_dims = c('chain','draw')
+					var_dims = c('draw','chain')
 					if(var_info$dimensions>0){
 						for(i in 1:var_info$dimensions){
 							dim_name = paste(var_name,i,sep='.')
