@@ -23,10 +23,10 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 * If no runtime errors are encountered, use of a performance-tuned exe for sampling 
 * Data are cached for faster start of sampling when the same data are sampled repeatedly
 * Nicer progress indicators including estimated time remaining and parsimonious display of any important error messages. 
-
-### Features under development
 * Progress indication including diagnostics
 * During-sampling redirection of output to an [ArviZ](https://arviz-devs.github.io/arviz/)-compliant file format, enabling faster post-sampling access to the output data as well as during-sampling monitoring of diagnostics & posterior samples.
+
+### Features under development
 * Diagnostics-driven sampling, whereby the model performance is monitored on a variety of criteria (divergences encountered, rhats, ESS; also standard sample-count as well as wall-time) and terminates only when those criteria are met.
 * Resuming sampling of unexpectedly-terminated chains.
 * When compiling performance exe: Moving transformed parameters to model block and removing generated quantities entirely. This yields slightly less compute/write time at the cost of requiring a subsequent `aria::generate_quantities()` run.
