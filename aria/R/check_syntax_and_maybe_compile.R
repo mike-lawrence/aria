@@ -33,7 +33,7 @@ check_syntax_and_maybe_compile = function(code_path){
 		command = "grep"
 		, args = c(
 			"^//aria:"
-			, code_path
+			, dQuote(code_path,F)
 		)
 		, stdout = TRUE
 	)
