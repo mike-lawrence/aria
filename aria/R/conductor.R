@@ -3,16 +3,16 @@
 
 conductor = function(){
 	#prelude ----
-	sampling_info_file = fs::path('aria','sampling','info',ext='qs')
+	sampling_info_file = fs::path('aria','sampling','info',ext='rds')
 	while(!fs::file_exists(sampling_info_file)){
 		Sys.sleep(.001)
 	}
-	sampling_info = qs::qread(sampling_info_file)
+	sampling_info = readRDS(sampling_info_file)
 	# stop()
 	options('aria_sotto_vocce'=sampling_info$aria_sotto_vocce)
 	debug_exe_file = fs::path('aria','exes',sampling_info$mod_name,'stan_debug_exe')
 	fast_exe_file = fs::path('aria','exes',sampling_info$mod_name,'stan_exe')
-	mod_info_file = fs::path('aria','exes',sampling_info$mod_name,'info',ext='qs')
+	mod_info_file = fs::path('aria','exes',sampling_info$mod_name,'info',ext='rds')
 
 	# do debug run ----
 	#look for exes
@@ -66,7 +66,7 @@ conductor = function(){
 	sampling_info$num_samples %<>% ifelse( !is.null(.) , . , 1e3 )
 	sampling_info$num_total = sampling_info$num_samples+sampling_info$num_warmup
 	sampling_info$start_time = Sys.time()
-	sampling_info$mod_info = qs::qread(mod_info_file)
+	sampling_info$mod_info = readRDS(mod_info_file)
 
 	#initialize the nc4 file ----
 	sampling_info %<>% aria:::initialize_nc()
@@ -211,7 +211,7 @@ conductor = function(){
 		, stderr =  purrr::map_dfr(inactive_chains,list('stderr','parsed'))
 		# , nc = sampling_info$nc
 	)
-	qs::qsave(marginalia,fs::path('aria','marginalia',ext='qs'),preset='fast')
+	saveRDS(marginalia,fs::path('aria','marginalia',ext='rds'))
 	if(!getOption('aria_sotto_vocce')){
 		beepr::beep(system.file("sounds/tada.wav", package="aria"))
 	}

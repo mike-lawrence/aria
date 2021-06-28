@@ -6,7 +6,7 @@ compile = function(aria_args){
 	debug_exe_file = fs::path('aria','exes',mod_name,'stan_debug_exe')
 	fast_exe_file = fs::path('aria','exes',mod_name,'stan_exe')
 	debug_json_file = fs::path('aria','exes',mod_name,'debug',ext='json')
-	mod_info_file = fs::path('aria','exes',mod_name,'info',ext='qs')
+	mod_info_file = fs::path('aria','exes',mod_name,'info',ext='rds')
 	fs::dir_create('aria','exes',mod_name)
 
 	#run autoformater so we only recompile on functional changes
@@ -24,7 +24,7 @@ compile = function(aria_args){
 	)$stdout
 	if(fs::file_exists(mod_info_file)){
 		new_digest = digest::digest(new_txt,algo='xxhash64')
-		old_digest = digest::digest(qs::qread(mod_info_file)$mod_txt,algo='xxhash64')
+		old_digest = digest::digest(readRDS(mod_info_file)$mod_txt,algo='xxhash64')
 		if((old_digest==new_digest)){
 			cat(aria:::blue('  ✓ Compiled exe is up to date.'))
 			if(!getOption('aria_sotto_vocce')){
@@ -172,7 +172,7 @@ compile = function(aria_args){
 	mod_info = jsonlite::fromJSON(info_run$stdout)
 	mod_info$cmdstan_version = cmdstanr::cmdstan_version()
 	mod_info$mod_txt = new_txt
-	qs::qsave(mod_info,mod_info_file,preset='fast')
+	saveRDS(mod_info,mod_info_file)
 	if(!getOption('aria_sotto_vocce')){
 		beepr::beep(system.file("sounds/tada.wav", package="aria"))
 	}

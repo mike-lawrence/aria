@@ -1,7 +1,7 @@
 check_syntax_and_maybe_compile = function(code_path){
 
 	fs::dir_create('aria')
-	aria_args_file = fs::path('aria','aria_args',ext='qs')
+	aria_args_file = fs::path('aria','aria_args',ext='rds')
 
 	#check if this is the first compile this session:
 	if(aria:::rstan_message_necessary){
@@ -57,7 +57,7 @@ check_syntax_and_maybe_compile = function(code_path){
 
 	#if compiling, save args & launch as job
 	if(aria_args$compile){
-		qs::qsave(aria_args,aria_args_file)
+		saveRDS(aria_args,aria_args_file)
 		temp_file = tempfile()
 		write(
 			'aria:::check_and_compile()'

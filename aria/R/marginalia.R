@@ -9,5 +9,5 @@
 #' aria::marginalia()
 #' }
 marginalia = function(){
-	qs::qread(fs::path('aria','marginalia',ext='qs'))
+	readRDS(fs::path('aria','marginalia',ext='rds'))
 }

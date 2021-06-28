@@ -2,7 +2,7 @@
 #'
 #' @param data list() (or \code{tibble::lst()}) object containing the data.
 #' @param code_path Character string describing the path to the Stan code.
-#' @param out_path Character string describing the path to a file where the final sampling output should be saved (in .qs format)
+#' @param out_path Character string describing the path to a file where the final sampling output should be saved (in NetCDF4 format)
 #' @param num_chains Integer value indicating the number of chains. If NULL (the default), \code{\link{parallel::detectCores()}/2} will be used. If negative, \code{\link{parallel::detectCores()}/2-num_cores} will be used. Otherwise, \code{num_cores} will be used.
 #' @param chain_num_start Integer value (default: 1) indicating An offset for the numeric chain identifiers. Useful if you have already run a set of chains, collected the results, and want to run more chains.
 #' @param exe_args_list list() object with a named hierarchical structure matching what exe expects in terms of runtime arguments (viewable via \code{\link{aria::exe_args}}). If NULL (the default), aria will select some defaults.
@@ -101,10 +101,9 @@ compose = function(
 		, data_file = data_file
 		, job_id = job_id
 	)
-	qs::qsave(
+	saveRDS(
 		sampling_info
-		, fs::path(run_dir,'info',ext='qs')
-		, preset = 'fast'
+		, fs::path(run_dir,'info',ext='rds')
 	)
 	return(invisible(NULL))
 }

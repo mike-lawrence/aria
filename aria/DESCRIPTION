@@ -25,7 +25,6 @@ Imports:
 	, processx
 	, ps
 	, purrr
-	, qs
 	, remotes
 	, renv
 	, rethinking

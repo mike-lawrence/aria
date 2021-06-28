@@ -19,7 +19,7 @@ compose(
 
 \item{code_path}{Character string describing the path to the Stan code.}
 
-\item{out_path}{Character string describing the path to a file where the final sampling output should be saved (in .qs format)}
+\item{out_path}{Character string describing the path to a file where the final sampling output should be saved (in NetCDF4 format)}
 
 \item{num_chains}{Integer value indicating the number of chains. If NULL (the default), \code{\link{parallel::detectCores()}/2} will be used. If negative, \code{\link{parallel::detectCores()}/2-num_cores} will be used. Otherwise, \code{num_cores} will be used.}
 
