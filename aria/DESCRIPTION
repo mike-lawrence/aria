@@ -12,9 +12,7 @@ BugReports: https://github.com/mike-lawrence/aria/issues
 SystemRequirements: CmdStan (https://mc-stan.org/users/interfaces/cmdstan)
 Imports: 
 	beepr
-	, clipr
 	, cmdstanr
-	, crayon
 	, data.table
 	, digest
 	, dplyr
@@ -26,8 +24,6 @@ Imports:
 	, ps
 	, purrr
 	, remotes
-	, renv
-	, rethinking
 	, RNetCDF
 	, rstudioapi
 	, stringi
