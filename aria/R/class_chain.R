@@ -108,6 +108,15 @@ class_chain = R6::R6Class(
 				(
 					RNetCDF::var.get.nc(
 						ncfile = self$sampling_info$nc_groups$sample_stats
+						, variable = 'divergent'
+						, start = c(diag_start_sample,as.numeric(self$name))
+						, count = c(diag_sample_count,1)
+					)
+					%>% mean()
+				) -> p_divergent
+				(
+					RNetCDF::var.get.nc(
+						ncfile = self$sampling_info$nc_groups$sample_stats
 						, variable = 'energy'
 						, start = c(diag_start_sample,as.numeric(self$name))
 						, count = c(diag_sample_count,1)
@@ -127,7 +136,8 @@ class_chain = R6::R6Class(
 				bulk = posterior::ess_bulk(lp)/diag_sample_count*100
 				tail = posterior::ess_tail(lp)/diag_sample_count*100
 				txt = paste(
-					format(round(rbfmi,1),width=6)
+					  format(ceiling(p_divergent*100),width=4)
+					, format(round(rbfmi,1),width=6)
 					, format(round(bulk),width=4)
 					, format(round(tail),width=4)
 				)
@@ -142,15 +152,16 @@ class_chain = R6::R6Class(
 				cat(' waiting\n')
 				return(invisible(self))
 			}
-			bar_width = floor((getOption('width') - nchar('0:[]100% 99m?'))/2)
+			bar_prefix_width = nchar('0:[')
+			bar_suffix_width = nchar(']100 99m? dvrg 1/bfmi bulk tail')
+			bar_width = floor(.8*(getOption('width') - (bar_prefix_width+bar_suffix_width)))
 			if(!is.null(self$times_from_stdout$total)){
 				cat(
 					'['
 					, strrep('\U2588',bar_width)
-					, ']100% '
+					, ']100 '
 					, aria:::vague_dt(as.double(self$times_from_stdout$total[1],units='secs'))
-					,'✓'
-					, '\t'
+					,'✓ '
 					, self$get_diagnostics_txt()
 					, '\n'
 					, sep = ''
@@ -170,7 +181,13 @@ class_chain = R6::R6Class(
 			}else{
 				todo_width = bar_width - done_width_floor
 			}
-			cat(strrep(' ',todo_width), ']',format(floor(100*done_prop),width=3),'% ',sep='')
+			cat(
+				strrep(' ',todo_width)
+				, ']'
+				, format(floor(100*done_prop),width=3)
+				, ' '
+				, sep=''
+			)
 			if(iter_done_num<=self$sampling_info$num_warmup){ #still in warmup
 				numerator = iter_done_num
 				denominator = self$sampling_info$num_total
@@ -187,7 +204,7 @@ class_chain = R6::R6Class(
 					(this_section_elapsed/numerator) * (denominator-numerator)
 				)
 				, eta_suffix
-				, '\t'
+				, ' '
 				, self$get_diagnostics_txt()
 				, '\n'
 				, sep=''

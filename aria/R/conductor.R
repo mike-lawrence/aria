@@ -116,7 +116,7 @@ conductor = function(){
 
 		#first the top bar:
 		# aria:::cat_top_bar(sampling_info)
-		aria:::cat_top_bar(sampling_info,last_loop_start_time)
+		aria:::cat_top_bar(sampling_info)
 
 		#loop over chains in sequence to cat their progress:
 		nlines = list()
@@ -193,6 +193,14 @@ conductor = function(){
 			print(treedepth)
 			cat(' \n')
 		}
+		#
+		loop_duration_txt = stringr::str_trim(aria:::vague_dt(Sys.time() - last_loop_start_time))
+		cat(
+			'Composer loop duration: '
+			, loop_duration_txt
+			, '\n'
+			, sep = ''
+		)
 		#gather stderr messages & cat
 		(
 			dplyr::bind_rows(
@@ -299,11 +307,10 @@ vague_dt = function(seconds) {
 	}
 }
 
-cat_top_bar = function(sampling_info,last_loop_start_time){
-	loop_duration_txt = stringr::str_trim(aria:::vague_dt(Sys.time() - last_loop_start_time))
+cat_top_bar = function(sampling_info){
 	bar_prefix_width = nchar('0:[')
-	bar_suffix_width = nchar('] 100% 99m?')
-	bar_width = (getOption('width') - (bar_prefix_width+bar_suffix_width))/2
+	bar_suffix_width = nchar(']100 99m? dvrg 1/bfmi essB essT')
+	bar_width = floor(.8*(getOption('width') - (bar_prefix_width+bar_suffix_width)))
 	warmup_width = round(
 		sampling_info$num_warmup
 		/ (
@@ -315,15 +322,11 @@ cat_top_bar = function(sampling_info,last_loop_start_time){
 	sampling_width = bar_width - warmup_width
 	cat(
 		'\U00C' #next-page character (serves to clear and place cursor at [0,0] )
-		, loop_duration_txt
-		, strrep(' ', bar_prefix_width-nchar(loop_duration_txt))
+		, strrep(' ', bar_prefix_width)
 		, strrep('\U2592',warmup_width)
 		, strrep('\U2593',sampling_width)
-		, strrep(' ', bar_suffix_width-4)
-		, 'eta'
-		, '\t'
-		, '1/bfmi bulk tail'
-		, '\n'
+		# ']100 99m? dvrg 1/bfmi bulk tail'
+		, '   %  eta dvrg 1/bfmi essB essT\n'
 		, sep=''
 	)
 
