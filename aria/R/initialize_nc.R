@@ -1,27 +1,42 @@
 initialize_nc = function(sampling_info){
 	# add the lengths of any quantities
 	for(quantity_type in c('parameters','transformed parameters','generated quantities')){
-		sampling_info$mod_info[[quantity_type]] %<>% purrr::map2(
-			.x = .
-			, .y = names(.)
-			, function(par_info,par_name){
-				if(par_info$dimensions==0){
-					return(par_info)
+		(
+			sampling_info$mod_info[[quantity_type]]
+			%>% purrr::map2(
+				.x = .
+				, .y = names(.)
+				, function(par_info,par_name){
+					if(par_info$dimensions==0){
+						return(par_info)
+					}
+					(
+						sampling_info$samples_col_names[
+							stringr::str_starts(
+								sampling_info$samples_col_names
+								, stringr::fixed(paste0(par_name,'.'))
+							)
+						]
+						%>% stringr::str_remove(paste0(par_name,'.'))
+						%>% stringr::str_split(stringr::fixed('.'),simplify=T)
+						%>% apply(2,function(z){
+							if(length(z)==0){
+								return(NULL)
+							}else{
+								return(max(as.numeric(z)))
+							}
+						})
+					) -> par_info$dimensions_lengths
+					if(is.null(par_info$dimensions_lengths)){
+						return(NULL)
+					}else{
+						return(par_info)
+					}
 				}
-				(
-					sampling_info$samples_col_names[
-						stringr::str_starts(
-							sampling_info$samples_col_names
-							, stringr::fixed(paste0(par_name,'.'))
-						)
-					]
-					%>% stringr::str_remove(paste0(par_name,'.'))
-					%>% stringr::str_split(stringr::fixed('.'),simplify=T)
-					%>% apply(2,function(z){max(as.numeric(z))})
-				) -> par_info$dimensions_lengths
-				return(par_info)
-			}
-		)
+			)
+			%>% purrr::compact()
+		) ->
+		sampling_info$mod_info[[quantity_type]]
 	}
 
 	#create the file pointer
@@ -37,8 +52,8 @@ initialize_nc = function(sampling_info){
 	#initialize the adapt_info group
 	nc_groups$adapt_info = RNetCDF::grp.def.nc(nc,'adapt_info')
 	RNetCDF::dim.def.nc(nc_groups$adapt_info,'chain',sampling_info$num_chains)
-	RNetCDF::var.def.nc(nc_groups$adapt_info,'chain','NC_UBYTE','chain',deflate=5,shuffle=TRUE,filter_id=32001)
-	RNetCDF::var.def.nc(nc_groups$adapt_info,'step_size','NC_DOUBLE','chain',deflate=5,shuffle=TRUE,filter_id=32001)
+	RNetCDF::var.def.nc(nc_groups$adapt_info,'chain','NC_UBYTE','chain')#,deflate=5,shuffle=TRUE,filter_id=32001)
+	RNetCDF::var.def.nc(nc_groups$adapt_info,'step_size','NC_DOUBLE','chain')#,deflate=5,shuffle=TRUE,filter_id=32001)
 	if(is.null(sampling_info$exe_args_list$sample$algorithm$hmc$metric)){
 		metric = 'diag_e'
 	}else{
@@ -47,10 +62,10 @@ initialize_nc = function(sampling_info){
 	if(metric!='unit_e'){
 		RNetCDF::dim.def.nc(nc_groups$adapt_info,'metric.1',length(sampling_info$samples_col_names)-7)
 		if(metric=='diag_e'){
-			RNetCDF::var.def.nc(nc_groups$adapt_info,'metric','NC_DOUBLE',c('chain','metric.1'),deflate=5,shuffle=TRUE,filter_id=32001)
+			RNetCDF::var.def.nc(nc_groups$adapt_info,'metric','NC_DOUBLE',c('chain','metric.1'))#,deflate=5,shuffle=TRUE,filter_id=32001)
 		}else{
 			RNetCDF::dim.def.nc(nc_groups$adapt_info,'metric.2',length(sampling_info$samples_col_names)-7)
-			RNetCDF::var.def.nc(nc_groups$adapt_info,'metric','NC_DOUBLE',c('chain','metric.1','metric.2'),deflate=5,shuffle=TRUE,filter_id=32001)
+			RNetCDF::var.def.nc(nc_groups$adapt_info,'metric','NC_DOUBLE',c('chain','metric.1','metric.2'))#,deflate=5,shuffle=TRUE,filter_id=32001)
 		}
 	}
 
@@ -59,8 +74,8 @@ initialize_nc = function(sampling_info){
 		grp = RNetCDF::grp.def.nc(nc,grp_name)
 		RNetCDF::dim.def.nc(grp,'chain',sampling_info$num_chains)
 		RNetCDF::dim.def.nc(grp,'draw',sampling_info$num_total)
-		RNetCDF::var.def.nc(grp,'chain','NC_UBYTE','chain',deflate=5,shuffle=TRUE,filter_id=32001) #num chains unlikely to exceed 2^8
-		RNetCDF::var.def.nc(grp,'draw','NC_USHORT','draw',deflate=5,shuffle=TRUE,filter_id=32001) #num draws unlikely to exceed 2^16
+		RNetCDF::var.def.nc(grp,'chain','NC_UBYTE','chain')#,deflate=5,shuffle=TRUE,filter_id=32001) #num chains unlikely to exceed 2^8
+		RNetCDF::var.def.nc(grp,'draw','NC_USHORT','draw')#,deflate=5,shuffle=TRUE,filter_id=32001) #num draws unlikely to exceed 2^16
 		if(grp_name=='sample_stats'){
 			vars = purrr::map(
 				.x = c('lp','accept_stat','stepsize','treedepth','n_leapfrog','divergent','energy')
@@ -103,7 +118,7 @@ initialize_nc = function(sampling_info){
 							var_dims = c(var_dims,dim_name)
 						}
 					}
-					RNetCDF::var.def.nc(grp,var_name,var_info$nc_type,var_dims,deflate=5,shuffle=TRUE,filter_id=32001)
+					RNetCDF::var.def.nc(grp,var_name,var_info$nc_type,var_dims)#,deflate=5,shuffle=TRUE,filter_id=32001)
 				}
 			)
 		}
@@ -113,6 +128,4 @@ initialize_nc = function(sampling_info){
 	sampling_info$nc = nc
 	sampling_info$nc_groups = nc_groups
 	return(sampling_info)
-	# RNetCDF::print.nc(nc)
-	# RNetCDF::print.nc(RNetCDF::open.nc('centered_eight.nc'))
 }
