@@ -43,9 +43,9 @@ check_syntax_and_maybe_compile = function(code_path,compile=0){
 			aria_args_lines
 			%>% stringr::str_remove(stringr::fixed('//aria:'))
 			%>% stringr::str_trim()
-			%>% stringr::str_split(stringr::fixed('='))
-		)-> aria_args_lines_split
-		for(line_split in aria_args_lines_split){
+			%>% stringr::str_split_fixed(stringr::fixed('='),n=2)
+		)-> aria_args_lines_mat
+		for(line_num in 1:nrow(aria_args_lines_mat)){
 			arg_name = dQuote(stringr::str_trim(aria_args_lines_mat[line_num,1]),F)
 			arg_value = stringr::str_trim(aria_args_lines_mat[line_num,2])
 			if(arg_name=='compile'){
