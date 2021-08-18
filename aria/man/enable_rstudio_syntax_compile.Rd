@@ -19,6 +19,7 @@ enable_rstudio_syntax_compile()
 }
 \seealso{
 Other Model checking & compilation functions: 
+\code{\link{check_and_compile}()},
 \code{\link{disable_rstudio_syntax_compile}()}
 }
 \concept{Model checking & compilation functions}

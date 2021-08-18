@@ -1,11 +1,21 @@
-check_and_compile = function(){
-	aria_args_file = fs::path('aria','aria_args',ext='rds')
-	aria_args = readRDS(aria_args_file)
-	options('aria_sotto_vocce'=aria_args$aria_sotto_vocce)
-	if(!aria:::check_syntax(aria_args)){ #check_syntax returns TRUE if passed
-		return(invisible(NULL))
-	}
-	aria:::compile(aria_args)
-	fs::file_delete(aria_args_file)
+#' Check syntax & compile
+#'
+#' This
+
+#' @param code_path Character string describing the path to the Stan code.
+#'
+#' @return NULL (invisibly)
+#' @export
+#'
+#' @family Model checking & compilation functions
+#'
+#' @examples
+#' \dontrun{
+#' check_and_compile(
+#' 	code_path = 'stan/my_mod.stan'
+#' )
+#' }
+check_and_compile = function(code_path){
+	aria:::check_syntax_and_maybe_compile(code_path,compile=1)
 	return(invisible(NULL))
 }
