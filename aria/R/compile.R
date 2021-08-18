@@ -125,16 +125,33 @@ compile = function(aria_args){
 		, new_path = fs::file_temp(ext='stan')
 	)
 	exe_file_for_compile = fs::path_ext_remove(tmpfile)
-	# exe_file_for_compile = fs::path_abs(fs::path_ext_remove(aria_args$code_path)) #must be absolute
+	make_local_path = fs::path(cmdstanr::cmdstan_path(),'make','local')
+	if(fs::file_exists(make_local_path)){
+		found_make_local = TRUE
+		fs::file_move(make_local_path,fs::path(make_local_path,ext='orig'))
+	}else{
+		found_make_local = FALSE
+	}
+	if(is.null(aria_args$cxx_flags)){
+		cxx_flags = NULL
+	}else{
+		cxx_flags = paste('CXXFLAGS +=',aria_args$cxx_flags)
+	}
+	writeLines(
+		text = c(
+			cxx_flags
+			, 'CXXFLAGS += -O3'
+			, 'CXXFLAGS += -g0'
+			, 'STAN_NO_RANGE_CHECKS=true'
+			, 'STAN_CPP_OPTIMS=true'
+		)
+		, make_local_path
+	)
 	make_run = processx::run(
 		command = cmdstanr:::make_cmd()
 		, args = c(
 			paste0('-j',parallel::detectCores())
 			, exe_file_for_compile
-			# , 'CXXFLAGS+=-DSTAN_NO_RANGE_CHECKS -O3 -march=native -mtune=native'
-			# , 'CXXFLAGS+=-DSTAN_NO_RANGE_CHECKS -DSTAN_CPP_OPTIMS -O3 -march=native -mtune=native'
-			, 'STAN_NO_RANGE_CHECKS=true'
-			, 'STAN_CPP_OPTIMS=true'
 			, paste(
 				'STANCFLAGS +='
 				, '--include-paths', dQuote(fs::path_abs(fs::path_dir(aria_args$code_path)),F)
@@ -145,7 +162,9 @@ compile = function(aria_args){
 		, error_on_status = F
 		, spinner = T
 	)
-
+	if(found_make_local){
+		fs::file_move(fs::path(make_local_path,ext='orig'),make_local_path)
+	}
 	if(make_run$stderr!=''){
 		if(!getOption('aria_sotto_vocce')){
 			beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
