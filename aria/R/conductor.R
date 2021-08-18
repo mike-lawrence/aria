@@ -87,7 +87,7 @@ conductor = function(){
 
 	#set niceness so we don't compete with the sampling processes
 	#    we'll also sleep in the main loop
-	ps::ps_set_nice(value=as.integer(20))
+	#ps::ps_set_nice(value=as.integer(20))
 
 
 	# main monitoring loop ----
