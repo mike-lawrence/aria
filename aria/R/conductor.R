@@ -91,6 +91,7 @@ conductor = function(){
 
 
 	# main monitoring loop ----
+	spinner_chars = c('|','/','－','\\')
 	last_loop_start_time = Sys.time()
 	#loop until no more active chains
 	while(length(active_chains)){
@@ -195,12 +196,16 @@ conductor = function(){
 		}
 		#
 		loop_duration_txt = stringr::str_trim(aria:::vague_dt(Sys.time() - last_loop_start_time))
+		this_spinner_char = spinner_chars[1]
 		cat(
 			'Composer loop duration: '
 			, loop_duration_txt
+			, ' '
+			, spinner_chars[1]
 			, '\n'
 			, sep = ''
 		)
+		spinner_chars = c(spinner_chars[2:length(spinner_chars)],this_spinner_char)
 		#gather stderr messages & cat
 		(
 			dplyr::bind_rows(
