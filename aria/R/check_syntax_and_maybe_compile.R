@@ -1,7 +1,11 @@
-check_syntax_and_maybe_compile = function(code_path,compile=0){
+check_syntax_and_maybe_compile = function(code_path,block=F,aria_args=NULL){
 
 	fs::dir_create('aria')
 	aria_args_file = fs::path('aria','aria_args',ext='rds')
+	if(is.null(aria_args)){
+		aria_args = list()
+	}
+	aria_args$code_path = code_path
 
 	#check if this is the first compile this session:
 	if(aria:::rstan_message_necessary){
@@ -19,13 +23,7 @@ check_syntax_and_maybe_compile = function(code_path,compile=0){
 	if(is.null(aria_sotto_vocce)){
 		aria_sotto_vocce = FALSE
 	}
-
-	#set default aria_args
-	aria_args = list(
-		code_path = code_path
-		, aria_sotto_vocce = aria_sotto_vocce
-		, compile = compile
-	)
+	aria_args$aria_sotto_vocce = aria_sotto_vocce
 
 	#extract any supplied by user
 	orig_warning_state = options(warn=-1)
@@ -46,22 +44,24 @@ check_syntax_and_maybe_compile = function(code_path,compile=0){
 			%>% stringr::str_split_fixed(stringr::fixed('='),n=2)
 		)-> aria_args_lines_mat
 		for(line_num in 1:nrow(aria_args_lines_mat)){
-			arg_name = dQuote(stringr::str_trim(aria_args_lines_mat[line_num,1]),F)
-			arg_value = stringr::str_trim(aria_args_lines_mat[line_num,2])
-			if(arg_name=='compile'){
-				if(aria_args$compile){
-					arg_value = 1
-				}
+			(
+				aria_args_lines_mat[line_num,1]
+				%>% stringr::str_trim()
+				%>% paste0("aria_args[['",.,"']]")
+			) ->
+				aria_args_list_string
+			if(is.null(eval(parse(text=aria_args_list_string)))){
+				(
+					aria_args_lines_mat[line_num,2]
+					%>% stringr::str_trim()
+					%>% paste0(aria_args_list_string,'<<-',.)
+					%>% parse(text=.)
+					%>% eval()
+				)
+
 			}
-			eval(parse(text=paste0(
-				'aria_args[['
-				, arg_name
-				, ']]='
-				, arg_value
-			)))
 		}
 	}
-
 	#if compiling, save args & launch as job
 	if(aria_args$compile){
 		saveRDS(aria_args,aria_args_file)
@@ -75,6 +75,11 @@ check_syntax_and_maybe_compile = function(code_path,compile=0){
 			, name = paste0('Checking & compiling "',code_path,'"')
 			, workingDir = getwd()
 		)
+		if(block){
+			while(fs::file_exists(aria_args_file)){
+				Sys.sleep(1)
+			}
+		}
 	}else{
 		aria:::check_syntax(aria_args)
 	}

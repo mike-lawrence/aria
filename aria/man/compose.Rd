@@ -11,7 +11,8 @@ compose(
   overwrite = FALSE,
   num_chains = NULL,
   chain_num_start = 1,
-  exe_args_list = NULL
+  exe_args_list = NULL,
+  block = FALSE
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ compose(
 \item{chain_num_start}{Integer value (default: 1) indicating An offset for the numeric chain identifiers. Useful if you have already run a set of chains, collected the results, and want to run more chains.}
 
 \item{exe_args_list}{list() object with a named hierarchical structure matching what exe expects in terms of runtime arguments (viewable via \code{\link{aria::exe_args}}). If NULL (the default), aria will select some defaults.}
+
+\item{block}{Boolean (default: FALSE) indicating whether to block the main R console process until complete.}
 }
 \value{
 NULL (invisibly); Side effects: \code{num_chains} sampling processes are launched in the background with progress monitored by an RStudio Job.

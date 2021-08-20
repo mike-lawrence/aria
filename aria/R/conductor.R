@@ -250,7 +250,7 @@ conductor = function(){
 		, sep = '\n'
 	)
 	rm(inactive_chains)
-	fs::dir_delete(fs::path('aria','sampling'))
+	fs::dir_delete(fs::path('aria','sampling')) # triggers unblock of aria::compose(block=T)
 	return(invisible(NULL))
 }
 

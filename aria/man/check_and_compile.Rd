@@ -4,10 +4,27 @@
 \alias{check_and_compile}
 \title{Check syntax & compile}
 \usage{
-check_and_compile(code_path)
+check_and_compile(
+  code_path,
+  block = FALSE,
+  syntax_ignore = NULL,
+  compile = TRUE,
+  compile_debug = NULL,
+  run_debug = NULL
+)
 }
 \arguments{
 \item{code_path}{Character string describing the path to the Stan code.}
+
+\item{block}{Boolean (default: FALSE) indicating whether to block the main R console process until complete.}
+
+\item{syntax_ignore}{Character string (or vector thereof); any syntax warnings including this string will be ignored.}
+
+\item{compile}{Boolean (default: TRUE) indicating whether to compile the model.}
+
+\item{compile_debug}{Boolean (default: TRUE) indicating whether to compile the debugging version of the model.}
+
+\item{run_debug}{Boolean (default: TRUE) indicating whether to run the debugging version of the model using automatically-generated synthetic data.}
 }
 \value{
 NULL (invisibly)
