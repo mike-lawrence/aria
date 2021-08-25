@@ -62,8 +62,14 @@ conductor = function(){
 	#others:
 	sampling_info$num_chains %<>% ifelse( !is.null(.) , . , parallel::detectCores()/2 )
 	sampling_info$num_chains %<>% ifelse( .>0 , . , parallel::detectCores()/2 - . ) #negative user-supplied
-	sampling_info$num_warmup %<>% ifelse( !is.null(.) , . , 1e3 )
-	sampling_info$num_samples %<>% ifelse( !is.null(.) , . , 1e3 )
+	sampling_info$num_warmup = (
+		sampling_info$exe_args_list$sample$num_warmup
+		%>% ifelse(	!is.null(.) , . , 1e3 )
+	)
+	sampling_info$num_samples = (
+		sampling_info$exe_args_list$sample$num_samples
+		%>% ifelse(	!is.null(.) , . , 1e3 )
+	)
 	sampling_info$num_total = sampling_info$num_samples+sampling_info$num_warmup
 	sampling_info$start_time = Sys.time()
 	sampling_info$mod_info = readRDS(mod_info_file)
