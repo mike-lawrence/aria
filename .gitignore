@@ -5,6 +5,5 @@ dev/
 renv/
 aria/renv/
 .Rproj.user
-aria_*.tar.gz
 aria.Rcheck
 README.html
