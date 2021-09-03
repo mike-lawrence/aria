@@ -140,8 +140,8 @@ compile = function(aria_args){
 	writeLines(
 		text = c(
 			cxx_flags
-			, 'CXXFLAGS += -O3'
-			, 'CXXFLAGS += -g0'
+			# , 'CXXFLAGS += -O3'
+			# , 'CXXFLAGS += -g0'
 			, 'STAN_NO_RANGE_CHECKS=true'
 			, 'STAN_CPP_OPTIMS=true'
 		)
