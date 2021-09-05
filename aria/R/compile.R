@@ -137,14 +137,13 @@ compile = function(aria_args){
 	}else{
 		cxx_flags = paste('CXXFLAGS +=',aria_args$cxx_flags)
 	}
-	writeLines(
-		text = c(
-			cxx_flags
-			# , 'CXXFLAGS += -O3'
-			# , 'CXXFLAGS += -g0'
-			, 'STAN_NO_RANGE_CHECKS=true'
-			, 'STAN_CPP_OPTIMS=true'
-		)
+	if(is.null(aria_args$stan_flags)){
+		stan_flags = NULL
+	}else{
+		stan_flags = paste(aria_args$stan_flags,'=true')
+	}
+	write(
+		paste(c(cxx_flags,stan_flags),collapse='\n')
 		, make_local_path
 	)
 	make_run = processx::run(
