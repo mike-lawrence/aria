@@ -17,17 +17,34 @@ check_syntax = function(aria_args){
 	)
 	stderr = stanc_syntax_check_run$stderr
 	if((stderr!='')&(!is.null(aria_args$syntax_ignore))){
-		stderr_lines = stringr::str_split(stderr,'\n')[[1]]
+		(
+			stderr
+			%>% stringr::str_split('\n')
+			%>% purrr::pluck(1)
+			%>% stringi::stri_remove_empty()
+			%>% tibble::tibble(line=.)
+			%>% dplyr::mutate(
+				ew_line_set = cumsum(stringr::str_starts(line,'Warning|Error'))
+			)
+			%>% dplyr::group_by(ew_line_set)
+			%>% dplyr::summarise(
+				entry = paste(line,collapse=' ')
+				, .groups = 'drop'
+			)
+			%>% dplyr::pull(entry)
+			%>% stringr::str_replace_all('\\h+',' ')
+		) ->
+			ew_entries
 		stderr_vec = NULL
-		for(line in stderr_lines){
+		for(entry in ew_entries){
 			toss = FALSE
 			for(ignore_string in aria_args$syntax_ignore){
-				if(stringr::str_detect(line,ignore_string)){
+				if(stringr::str_detect(entry,ignore_string)){
 					toss = TRUE
 				}
 			}
 			if(!toss){
-				stderr_vec = c(stderr_vec,line)
+				stderr_vec = c(stderr_vec,entry)
 			}
 		}
 		stderr = paste(stderr_vec,collapse='\n')
