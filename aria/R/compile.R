@@ -27,9 +27,7 @@ compile = function(aria_args){
 		old_digest = digest::digest(readRDS(mod_info_file)$mod_txt,algo='xxhash64')
 		if((old_digest==new_digest)){
 			cat(aria:::blue('  ✓ Compiled exe is up to date.'))
-			if(!getOption('aria_sotto_vocce')){
-				beepr::beep(system.file("sounds/tada.wav", package="aria"))
-			}
+			aria:::yay()
 			if(sys.parent()==0){ #function is being called from the global env
 				return(invisible(NULL))
 			}else{
@@ -67,9 +65,7 @@ compile = function(aria_args){
 		)
 
 		if(debug_make_run$stderr!=''){
-			if(!getOption('aria_sotto_vocce')){
-				beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
-			}
+			aria:::boo()
 			cat(aria:::blue(debug_make_run$stdout))
 			cat('\n\n')
 			cat(aria:::red(debug_make_run$stderr))
@@ -165,9 +161,7 @@ compile = function(aria_args){
 		fs::file_move(fs::path(make_local_path,ext='orig'),make_local_path)
 	}
 	if(make_run$stderr!=''){
-		if(!getOption('aria_sotto_vocce')){
-			beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
-		}
+		aria:::boo()
 		cat(aria:::blue(make_run$stdout))
 		cat('\n\n')
 		cat(aria:::red(make_run$stderr))
@@ -201,10 +195,7 @@ compile = function(aria_args){
 	mod_info$cmdstan_version = cmdstanr::cmdstan_version()
 	mod_info$mod_txt = new_txt
 	saveRDS(mod_info,mod_info_file)
-	if(!getOption('aria_sotto_vocce')){
-		beepr::beep(system.file("sounds/tada.wav", package="aria"))
-	}
-
+	aria:::yay()
 	#finally, return
 	return(invisible(NULL))
 }

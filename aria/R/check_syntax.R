@@ -42,9 +42,7 @@ check_syntax = function(aria_args){
 		error_list = ew_entries[stringr::str_starts(ew_entries,'Error')]
 		if(length(error_list)>0){
 			syntax_check_passed = FALSE
-			if(!getOption('aria_sotto_vocce')){
-				beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
-			}
+			aria:::boo()
 			cat(aria:::red('Stan syntax-check encountered the following ERRORS:'),'\n',sep='')
 			cat(aria:::red(paste(error_list,collapse='\n \n')),'\n \n',sep='')
 		}
@@ -61,9 +59,7 @@ check_syntax = function(aria_args){
 		warnings_to_print = (warnings_tbl %>% dplyr::filter(!entry_in_ignore) %>% dplyr::pull(entry))
 		if(length(warnings_to_print)>0){
 			syntax_check_passed = FALSE
-			if(!getOption('aria_sotto_vocce')){
-				beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
-			}
+			aria:::boo()
 			cat(aria:::red('Stan syntax-check encountered the following WARNINGS:\n \n'))
 			cat(aria:::red(paste(warnings_to_print,collapse='\n \n')),'\n \n \n',sep='')
 			cat(aria:::blue("You should probably fix the source of these warnings, but if you feel they are false-alarms and want to instead simply ignore them, add the following to the top of your .stan file:\n \n"))

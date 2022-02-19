@@ -20,9 +20,7 @@ run_debug = function(debug_exe_file,data_file,return_header=FALSE){
 		, spinner = T
 	)
 	if(debug_run$stderr!=''){
-		if(!getOption('aria_sotto_vocce')){
-			beepr::beep(system.file("sounds/critical_stop.wav", package="aria"))
-		}
+		aria:::boo()
 		cat(aria:::red('  Debug check FAILED.   \n\n'))
 		if(debug_run$stdout!=''){
 			cat(aria:::blue('STDOUT:\n'))

@@ -231,9 +231,7 @@ conductor = function(){
 		# , nc = sampling_info$nc
 	)
 	saveRDS(marginalia,fs::path('aria','marginalia',ext='rds'))
-	if(!getOption('aria_sotto_vocce')){
-		beepr::beep(system.file("sounds/tada.wav", package="aria"))
-	}
+	aria:::yay()
 	# cat(
 	# 	aria:::cyan(' \n \n \nComposition complete.\n')
 	# 	, aria:::cyan('Results have been put in a variable named ')
