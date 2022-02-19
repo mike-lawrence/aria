@@ -18,7 +18,7 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 
 ### Implemented features
 * Use of `stanc3` for syntax checking in RStudio (automatically enabled on package load; see `?aria::enable_rstudio_syntax_compile`)
-* Option to trigger model compilation on save with a `// aria: compile=1` string at the top of your Stan file
+* Option to trigger model compilation on save with a `// aria: compile = 1` string at the top of your Stan file
 * Smart compilation whereby the saved model is compared to a stored (in a folder called `aria`) representation and compilation only proceeds if *functional* changes to the code have been made (n.b. including to any includes!). So go ahead and add comments and modify whitespace without fear that they will cause unnecessary model recompilation.
 * Both compilation and sampling occur in background processes with outputs/progress monitored by an RStudio Job.
 * Automatic check for runtime errors at compilation using a special debugging exe and dummy data.
@@ -84,7 +84,14 @@ A value of `0` *prevents* the default running of the debug exe (if compiled) usi
 
 *  `// aria: make_local += STAN_NO_RANGE_CHECKS=true` 
 
-Lines prefaced with `// aria: make_local += ` have the remainder of their line content appended as newlines to a make/local makefile used for compilation of the performance exe. If there are no such lines, the existing make/local is used. If there are such lines and a make/local exists, it is temporarily moved and the lines specified in the .stan file are added to a temporary empty make/local. 
+Lines prefaced with `// aria: make_local += ` have the remainder of their line content appended as newlines to a make/local makefile used for compilation of the performance exe. If there are no such lines, the existing make/local is used. If there are such lines and a make/local exists, it is temporarily moved and the lines specified in the .stan file are added to a temporary empty make/local. A maximally-optimized make/local would be used via:
+```stan
+// aria: make_local += CXXFLAGS+=-O3
+// aria: make_local += CXXFLAGS+=-g0
+// aria: make_local += STAN_NO_RANGE_CHECKS=true
+// aria: make_local += STAN_CPP_OPTIMS=true
+// aria: make_local += STANCFLAGS+=--Oexperimental
+```
 
 
 
