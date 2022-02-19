@@ -30,38 +30,50 @@ check_syntax_and_maybe_compile = function(code_path,block=F,aria_args=NULL){
 	aria_args_lines = system2(
 		command = "grep"
 		, args = c(
-			"^//aria:"
-			, dQuote(code_path,F)
+			dQuote("^\\/\\/\\s*aria:\\s*",F)
+			, dQuote(aria_args$code_path,F)
 		)
 		, stdout = TRUE
 	)
 	options(orig_warning_state)
 	if(length(aria_args_lines)>0){
+		#parse lines to args_list
 		(
 			aria_args_lines
-			%>% stringr::str_remove(stringr::fixed('//aria:'))
+			%>% stringi::stri_remove_empty()
+			%>% stringr::str_remove("^\\/\\/\\s*aria:\\s*")
 			%>% stringr::str_trim()
-			%>% stringr::str_split_fixed(stringr::fixed('='),n=2)
-		)-> aria_args_lines_mat
-		for(line_num in 1:nrow(aria_args_lines_mat)){
-			(
-				aria_args_lines_mat[line_num,1]
-				%>% stringr::str_trim()
-				%>% paste0("aria_args[['",.,"']]")
-			) ->
-				aria_args_list_string
-			if(is.null(eval(parse(text=aria_args_list_string)))){
-				(
-					aria_args_lines_mat[line_num,2]
-					%>% stringr::str_trim()
-					%>% paste0(aria_args_list_string,'<<-',.)
-					%>% parse(text=.)
-					%>% eval()
-				)
-
+			%>% tibble::tibble(line=.)
+			%>% tidyr::separate(
+				line
+				, into = c('arg','value')
+				, sep = '=|\\+='
+				, extra = 'merge'
+			)
+			%>% dplyr::mutate(
+				arg = stringr::str_trim(arg)
+				, value = stringr::str_trim(value)
+			)
+			%>% dplyr::group_by(arg)
+			%>% dplyr::group_split()
+			%>% purrr::map(
+				.f = ~list(arg=.x$arg[1],value=.x$value)
+			)
+			%>% purrr::set_names(.,purrr::map(.,'arg'))
+			%>% purrr::map(.,'value')
+			# %>% group_map(.f=~as.list(.x$value))
+		) ->
+			found_aria_args
+		#add only those args not already present (so that programmatic calls of aria::check_and_compile(...) override found values)
+		for(i in 1:length(found_aria_args)){
+			if(!(names(found_aria_args)[i] %in% names(aria_args))){
+				aria_args[[names(found_aria_args)[i]]] = found_aria_args[[i]]
 			}
 		}
 	}
+	aria_args$compile = validate_boolean_aria_arg(aria_args$compile,'compile',FALSE)
+	aria_args$compile_debug = validate_boolean_aria_arg(aria_args$compile_debug,'compile_debug',TRUE)
+	aria_args$run_debug = validate_boolean_aria_arg(aria_args$compile,'run_debug',TRUE)
 	#if compiling, save args & launch as job
 	if(aria_args$compile){
 		saveRDS(aria_args,aria_args_file)

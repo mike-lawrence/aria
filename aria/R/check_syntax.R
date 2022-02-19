@@ -45,6 +45,7 @@ check_syntax = function(aria_args){
 			aria:::boo()
 			cat(aria:::red('Stan syntax-check encountered the following ERRORS:'),'\n',sep='')
 			cat(aria:::red(paste(error_list,collapse='\n \n')),'\n \n',sep='')
+			stop()
 		}
 		#split out warnings & check if in aria_args$syntax_ignore
 		(
@@ -66,12 +67,12 @@ check_syntax = function(aria_args){
 			(
 				warnings_tbl
 				%>% dplyr::pull(briefer_entry)
-				%>% dQuote(q=F)
-				%>% paste(collapse=', ')
-				%>% paste0('//aria: syntax_ignore = c(',.,')')
+				%>% paste('// aria: syntax_ignore = ',.,collapse='\n')
 			) ->
 				aria_syntax_ignore_recommendation
 			cat(aria_syntax_ignore_recommendation,'\n \n \n',sep='')
+		}else{
+			cat(aria:::blue('  ✓ Syntax check passed\n'))
 		}
 	}
 	if(stanc_syntax_check_run$stdout!=''){

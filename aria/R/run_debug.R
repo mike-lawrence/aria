@@ -28,6 +28,8 @@ run_debug = function(debug_exe_file,data_file,return_header=FALSE){
 		}
 		cat(aria:::blue('STDERR:\n'))
 		cat(aria:::red(debug_run$stderr),'\n',sep='')
+		cat(aria:::blue('OUTPUT:\n'))
+		cat(paste(readLines(out_file),collapse='\n'),'\n',sep='')
 		return(FALSE)
 	}
 	cat(aria:::blue('  ✓ Debug check passed  \n')) #spaces to overwrite old string

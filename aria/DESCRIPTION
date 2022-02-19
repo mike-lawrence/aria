@@ -1,7 +1,7 @@
 Package: aria
 Type: Package
 Title: A package implementing an idiosyncratic Stan workflow
-Version: 0.1.0
+Version: 0.2.0
 Author: Mike Lawrence
 Maintainer: Mike Lawrence <mike@axemneuro.com>
 Description: See https://github.com/mike-lawrence/aria

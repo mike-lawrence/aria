@@ -8,6 +8,7 @@ check_and_compile(
   code_path,
   block = FALSE,
   syntax_ignore = NULL,
+  make_local = NULL,
   compile = TRUE,
   compile_debug = NULL,
   run_debug = NULL
@@ -20,6 +21,8 @@ check_and_compile(
 
 \item{syntax_ignore}{Character string (or vector thereof); any syntax warnings including this string will be ignored.}
 
+\item{make_local}{Character string (or vector thereof); lines to write to make/local during compilation of performance exe.}
+
 \item{compile}{Boolean (default: TRUE) indicating whether to compile the model.}
 
 \item{compile_debug}{Boolean (default: TRUE) indicating whether to compile the debugging version of the model.}
@@ -30,7 +33,7 @@ check_and_compile(
 NULL (invisibly)
 }
 \description{
-This
+A function intended primarily for programmatic checks/compilation. Values suplied as arguments will override any conflicting values specified in the .stan file on \"\\\\aria ..." lines
 }
 \examples{
 \dontrun{
