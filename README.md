@@ -1,5 +1,5 @@
 # Note: 
-Development for this project is on pause, partly due to personal time constraints, partly because I'm aiming to transition the core out of RStudio Jobs to a python-based background-process framework that should be more environment agnostic (ex. could be run in RStudio or VSCode)
+Development for this project is on pause, partly due to personal time constraints, partly because I'm aiming to transition the core out of RStudio Jobs to a python-based background-process framework that should be more environment agnostic (ex. could be run in RStudio or VSCode). I'm also finding the NETCDF file format somewhat buggy and am considering alternatives like zarr.
 
 # aria
 An R package implementing an idiosyncratic Stan workflow.
