@@ -18,7 +18,7 @@ You probably shouldn't, not yet at least. That is, this package is still in it's
 
 ### Implemented features
 * Use of `stanc3` for syntax checking in RStudio (automatically enabled on package load; see `?aria::enable_rstudio_syntax_compile`)
-* Option to trigger model compilation on save with a `// aria: compile = 1` string at the top of your Stan file
+* Option to trigger model compilation on save with a `aria: compile = 1` string at the top of your Stan file
 * Smart compilation whereby the saved model is compared to a stored (in a folder called `aria`) representation and compilation only proceeds if *functional* changes to the code have been made (n.b. including to any includes!). So go ahead and add comments and modify whitespace without fear that they will cause unnecessary model recompilation.
 * Both compilation and sampling occur in background processes with outputs/progress monitored by an RStudio Job.
 * Automatic check for runtime errors at compilation using a special debugging exe and dummy data.
@@ -53,7 +53,13 @@ aria::enable_rstudio_syntax_compile()
 ```
 This enables the enhanced "Check on Save" in RStudio. You can then work on your stan file in rstudio, saving as you go to obtain syntax checks from the stanc3 syntax checker. 
 
-When you're ready to compile, add`// aria: compile = 1` at the top of the file and save, at which point an RStudio Job will launch to show you progress of a multi-step compilation. By default, compilation will involve:
+When you're ready to compile, add 
+```{stan}
+/*
+aria: compile = 1
+*/
+```
+at the top of the file and save, at which point an RStudio Job will launch to show you progress of a multi-step compilation. By default, compilation will involve:
 
  1. Syntax check
  2. Compiling a "debugging" executable
@@ -64,33 +70,33 @@ At this point you might hear auditory feedback on successful completion or failu
 ```r
 options('aria_sotto_vocce'=TRUE)
 ```
-There are other comments you can put in your stan file to modify the syntax-checking and compilation process away from the defaults enumerated above:
+There are other comments you can put inside the aria comment block above, enabling modification of the syntax-checking and compilation process away from the defaults enumerated above:
 
 
-* `// aria: syntax_ignore += The parameter iZc has no priors.`
+* `aria: syntax_ignore += The parameter iZc has no priors.`
 
-Any line starting with `// aria: syntax_ignore +=` tells the syntax checker to ignore any warning matching the rest of the line's content. (n.b. fuzzy-matching from prior aria versions has been removed in favor of printing messages when warnings are encountered.) This option only really makes sense to need when you're trying to compile (syntax errors block compilation) and have already verified that the warning is not taking into account your more advanced Stan code.
+Any line starting with `aria: syntax_ignore +=` tells the syntax checker to ignore any warning matching the rest of the line's content. (n.b. fuzzy-matching from prior aria versions has been removed in favor of printing messages when warnings are encountered.) This option only really makes sense to need when you're trying to compile (syntax errors block compilation) and have already verified that the warning is not taking into account your more advanced Stan code.
 
 
-* `// aria: compile_debug = 0` 
+* `aria: compile_debug = 0` 
 
 A value of `0` *prevents* the default compilation of a "debug" exe. Recommended that you not use this unless you're really pressed for time.
 
 
-*  `// aria: run_debug = 0` 
+*  `aria: run_debug = 0` 
 
 A value of `0` *prevents* the default running of the debug exe (if compiled) using auto-generated synthetic data. For use with models that have complicated structure that foils the synthetic data generator and yield nan's in the target. 
 
 
-*  `// aria: make_local += STAN_NO_RANGE_CHECKS=true` 
+*  `aria: make_local += STAN_NO_RANGE_CHECKS=true` 
 
-Lines prefaced with `// aria: make_local += ` have the remainder of their line content appended as newlines to a make/local makefile used for compilation of the performance exe. If there are no such lines, the existing make/local is used. If there are such lines and a make/local exists, it is temporarily moved and the lines specified in the .stan file are added to a temporary empty make/local. A maximally-optimized make/local would be used via:
+Lines prefaced with `aria: make_local += ` have the remainder of their line content appended as newlines to a make/local makefile used for compilation of the performance exe. If there are no such lines, the existing make/local is used. If there are such lines and a make/local exists, it is temporarily moved and the lines specified in the .stan file are added to a temporary empty make/local. A maximally-optimized make/local would be used via:
 ```stan
-// aria: make_local += CXXFLAGS+=-O3
-// aria: make_local += CXXFLAGS+=-g0
-// aria: make_local += STAN_NO_RANGE_CHECKS=true
-// aria: make_local += STAN_CPP_OPTIMS=true
-// aria: make_local += STANCFLAGS+=--Oexperimental
+aria: make_local += CXXFLAGS+=-O3
+aria: make_local += CXXFLAGS+=-g0
+aria: make_local += STAN_NO_RANGE_CHECKS=true
+aria: make_local += STAN_CPP_OPTIMS=true
+aria: make_local += STANCFLAGS+=--Oexperimental
 ```
 
 

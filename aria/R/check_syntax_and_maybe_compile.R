@@ -30,7 +30,7 @@ check_syntax_and_maybe_compile = function(code_path,block=F,aria_args=NULL){
 	aria_args_lines = system2(
 		command = "grep"
 		, args = c(
-			dQuote("^\\/\\/\\s*aria:\\s*",F)
+			dQuote("^aria:\\s*",F)
 			, dQuote(aria_args$code_path,F)
 		)
 		, stdout = TRUE
@@ -41,7 +41,7 @@ check_syntax_and_maybe_compile = function(code_path,block=F,aria_args=NULL){
 		(
 			aria_args_lines
 			%>% stringi::stri_remove_empty()
-			%>% stringr::str_remove("^\\/\\/\\s*aria:\\s*")
+			%>% stringr::str_remove("^aria:\\s*")
 			%>% stringr::str_trim()
 			%>% tibble::tibble(line=.)
 			%>% tidyr::separate(
