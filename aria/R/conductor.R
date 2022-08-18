@@ -44,10 +44,12 @@ conductor = function(){
 
 	}
 
-	# set up exe_args & other entries in sampling_info ----
-	# exe_args:
+	# set up exe_args & some entries in sampling_info ----
 	if(is.null(sampling_info$exe_args_list)){
-		sampling_info$exe_args_list = list('sample'=list())
+		sampling_info$exe_args_list = list()
+	}
+	if(is.null(sampling_info$exe_args_list$sample)){
+		sampling_info$exe_args_list$sample=list()
 	}
 	(
 		sampling_info$exe_args_list
@@ -56,7 +58,6 @@ conductor = function(){
 		%>% aria:::add_run_arg_if_missing('data','file',sampling_info$data_file)
 		%>% aria:::add_run_arg_if_missing('output','refresh',0)
 		%>% aria:::add_run_arg_if_missing('output','sig_figs',18)
-		%>% aria:::add_run_arg_if_missing('sample','save_warmup',1)
 		# %>% add_run_arg_if_missing('output','diagnostic_file','diagnostic.csv')
 	) -> sampling_info$exe_args_list
 	#others:
