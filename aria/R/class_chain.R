@@ -37,7 +37,7 @@ class_chain = R6::R6Class(
 				command = fs::path('.','aria','exes',sampling_info$mod_name,'stan_exe')
 				, args = c(
 					paste0('id=',self$name)
-					, exe_args_list_to_vec(sampling_info$exe_args_list)
+					, aria:::exe_args_list_to_vec(sampling_info$exe_args_list)
 				)
 				, stdout = self$stdout$file
 				, stderr = self$stderr$file
